@@ -135,7 +135,10 @@
             })
             .catch(error => {
                 console.error('Error simulating payment:', error);
-                document.getElementById('payment-status').textContent = 'Error simulating payment: ' + error.message;
+                document.getElementById('payment-status').textContent = 'Error simulating payment: ' + (error.message || 'Unknown error');
+                if (error.details) {
+                    console.error('Error details:', error.details);
+                }
             });
         }
     </script>

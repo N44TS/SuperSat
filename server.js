@@ -61,7 +61,7 @@ app.post('/send-message', async (req, res) => {
         res.json({ invoice, status: 'Invoice created' });
     } catch (error) {
         console.error('Error:', error);
-        res.status(500).json({ status: 'Error creating invoice' });
+        res.status(500).json({ status: 'Error creating invoice', error: error.message });
     }
 });
 
@@ -85,7 +85,8 @@ app.post('/simulate-payment', async (req, res) => {
 
         // Send message to YouTube chat
         try {
-            await axios.post(`${process.env.VERCEL_URL || 'http://localhost:3001'}/post-message`, { 
+            const serverUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3001';
+            await axios.post(`${serverUrl}/post-message`, { 
                 message: `⚡ Superchat (${amount} sats): ${message}`,
                 videoId: videoId
             });

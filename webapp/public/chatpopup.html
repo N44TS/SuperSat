@@ -33,7 +33,7 @@
             const message = document.getElementById('message').value;
             const amount = document.getElementById('amount').value;
             if (message && amount) {
-                const serverUrl = window.location.origin; // This will work for both local and Vercel deployments
+                const serverUrl = window.location.origin;
                 fetch(`${serverUrl}/send-message`, {
                     method: 'POST',
                     headers: {
@@ -41,7 +41,12 @@
                     },
                     body: JSON.stringify({ message, amount: parseInt(amount), videoId }),
                 })
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     if (data.invoice) {
                         document.getElementById('invoice').textContent = data.invoice;
@@ -56,12 +61,13 @@
 
                         // Start checking payment status
                         checkPaymentStatus(data.invoice);
+                    } else {
+                        throw new Error(data.status || 'Unknown error');
                     }
-                    console.log('Response:', data);
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    alert('Error creating invoice. Please try again.');
+                    alert('Error creating invoice: ' + error.message);
                 });
             }
         }

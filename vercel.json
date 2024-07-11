@@ -1,31 +1,23 @@
 {
-    "version": 2,
-    "builds": [
-      {
-        "src": "webapp/index.js",
-        "use": "@vercel/node"
-      },
-      {
-        "src": "webapp/public/**",
-        "use": "@vercel/static"
-      }
-    ],
-    "routes": [
-      {
-        "src": "/",
-        "dest": "webapp/public/index.html"
-      },
-      {
-        "src": "/creator",
-        "dest": "webapp/public/creator.html"
-      },
-      {
-        "src": "/superchat",
-        "dest": "webapp/public/chatpopup.html"
-      },
-      {
-        "src": "/(.*)",
-        "dest": "webapp/index.js"
-      }
-    ]
-  }
+  "version": 2,
+  "builds": [
+    {
+      "src": "server.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "webapp/public/**",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/static/(.*)",
+      "dest": "/webapp/public/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/server.js"
+    }
+  ]
+}

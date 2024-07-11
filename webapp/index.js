@@ -169,6 +169,20 @@ app.post('/simulate-payment', async (req, res) => {
     }
 });
 
-app.listen(port, () => {
+// At the end of server.js
+if (require.main === module) {
+  app.listen(port, () => {
     console.log(`Server running on port ${port}`);
-});
+  }).on('error', (err) => {
+    console.error('Server error:', err);
+    process.exit(1);
+  });
+}
+
+module.exports = app;
+
+// Add these lines at the end of the file
+module.exports = {
+    createInvoice,
+    checkInvoiceStatus
+};

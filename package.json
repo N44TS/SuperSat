@@ -3,9 +3,8 @@
   "version": "1.0.0",
   "description": "Lightning Network Superchat for YouTube",
   "scripts": {
-    "start:webapp": "node webapp/index.js",
-    "start:chatbot": "node chatbot/index.js",
-    "start": "npm run start:webapp & npm run start:chatbot"
+    "start": "node server.js",
+    "build": "echo 'No build step required'"
   },
   "dependencies": {
     "@lightsparkdev/lightspark-sdk": "^1.6.0",
@@ -17,8 +16,5 @@
     "googleapis": "^118.0.0",
     "qrcode": "^1.5.3",
     "qrcode.react": "^3.1.0"
-  },
-  "devDependencies": {
-    "concurrently": "^8.2.0"
   }
 }

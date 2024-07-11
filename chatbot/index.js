@@ -6,11 +6,6 @@ const path = require('path');
 
 dotenv.config();
 
-const app = express();
-const port = 3001;
-
-app.use(bodyParser.json());
-
 const youtube = google.youtube('v3');
 const oauth2Client = new google.auth.OAuth2(
     process.env.YOUTUBE_CLIENT_ID,
@@ -52,19 +47,7 @@ async function getLiveChatId(videoId) {
     return response.data.items[0].liveStreamingDetails.activeLiveChatId;
 }
 
-app.post('/post-message', async (req, res) => {
-    const { message, videoId } = req.body;
-    console.log('Bot received message:', message, 'for video ID:', videoId);
-    try {
-        const liveChatId = await getLiveChatId(videoId);
-        await postToYouTubeChat(message, liveChatId);
-        res.json({ status: 'Message posted to YouTube live chat' });
-    } catch (error) {
-        console.error('Error posting to YouTube:', error);
-        res.status(500).json({ status: 'Error posting message', error: error.message });
-    }
-});
-
-app.listen(port, () => {
-    console.log(`Bot server running at http://localhost:${port}`);
-});
+module.exports = {
+  postToYouTubeChat,
+  getLiveChatId
+};

@@ -4,7 +4,7 @@ const { google } = require('googleapis');
 const dotenv = require('dotenv');
 const path = require('path');
 
-dotenv.config({ path: path.resolve(__dirname, '../.env') });
+dotenv.config();
 
 const app = express();
 const port = 3001;

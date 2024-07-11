@@ -1,20 +1,16 @@
-import dotenv from 'dotenv';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-import express from 'express';
-import bodyParser from 'body-parser';
-import axios from 'axios';
-import path from 'path';
-import { AccountTokenAuthProvider, LightsparkClient, InvoiceType, BitcoinNetwork } from "@lightsparkdev/lightspark-sdk";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const dotenv = require('dotenv');
+const express = require('express');
+const bodyParser = require('body-parser');
+const axios = require('axios');
+const path = require('path');
+const { AccountTokenAuthProvider, LightsparkClient, InvoiceType, BitcoinNetwork } = require("@lightsparkdev/lightspark-sdk");
 
 // Load .env file from the root directory
-dotenv.config({ path: join(__dirname, '..', '.env') });
+// dotenv.config({ path: join(__dirname, '..', '.env') });
+dotenv.config();
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 const lightsparkClient = new LightsparkClient(
     new AccountTokenAuthProvider(
@@ -174,5 +170,5 @@ app.post('/simulate-payment', async (req, res) => {
 });
 
 app.listen(port, () => {
-    console.log(`Server running at http://localhost:${port}`);
+    console.log(`Server running on port ${port}`);
 });

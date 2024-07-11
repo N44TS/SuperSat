@@ -1,0 +1,24 @@
+{
+  "name": "lightning-superchat",
+  "version": "1.0.0",
+  "description": "Lightning Network Superchat for YouTube",
+  "scripts": {
+    "start:webapp": "node webapp/index.js",
+    "start:chatbot": "node chatbot/index.js",
+    "start": "npm run start:webapp & npm run start:chatbot"
+  },
+  "dependencies": {
+    "@lightsparkdev/lightspark-sdk": "^1.6.0",
+    "@lightsparkdev/wallet-sdk": "^0.12.13",
+    "axios": "^1.7.2",
+    "body-parser": "^1.20.2",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "googleapis": "^118.0.0",
+    "qrcode": "^1.5.3",
+    "qrcode.react": "^3.1.0"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0"
+  }
+}

@@ -82,7 +82,7 @@
                     return;
                 }
 
-                fetch(`${process.env.VERCEL_URL || 'http://localhost:3001'}/check-invoice/${invoice}`)
+                fetch(`${window.location.origin}/check-invoice/${invoice}`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.paid) {
@@ -115,7 +115,7 @@
         };
 
         function simulatePayment(invoice, message, amount, videoId) {
-            const serverUrl = window.location.origin; // This will work for both local and Vercel deployments
+            const serverUrl = window.location.origin;
             fetch(`${serverUrl}/simulate-payment`, {
                 method: 'POST',
                 headers: {
@@ -130,12 +130,12 @@
                     document.getElementById('qrcode').style.display = 'none';
                     document.getElementById('simulate-payment-button').style.display = 'none';
                 } else {
-                    throw new Error(data.message);
+                    throw new Error(data.message || 'Unknown error');
                 }
             })
             .catch(error => {
                 console.error('Error simulating payment:', error);
-                alert('Error simulating payment. Please try again.');
+                document.getElementById('payment-status').textContent = 'Error simulating payment: ' + error.message;
             });
         }
     </script>

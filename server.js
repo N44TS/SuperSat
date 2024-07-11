@@ -86,14 +86,15 @@ app.post('/simulate-payment', async (req, res) => {
         // Send message to YouTube chat
         try {
             const serverUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3001';
-            await axios.post(`${serverUrl}/post-message`, { 
+            const response = await axios.post(`${serverUrl}/post-message`, { 
                 message: `⚡ Superchat (${amount} sats): ${message}`,
                 videoId: videoId
             });
+            console.log('YouTube API response:', response.data);
             res.json({ success: true, message: 'Payment simulated and message posted to YouTube chat' });
         } catch (botError) {
-            console.error('Error posting message to YouTube:', botError);
-            res.status(500).json({ success: false, message: 'Error posting message to YouTube chat' });
+            console.error('Error posting message to YouTube:', botError.response ? botError.response.data : botError.message);
+            res.status(500).json({ success: false, message: 'Error posting message to YouTube chat', error: botError.message });
         }
     } catch (error) {
         console.error('Error:', error);

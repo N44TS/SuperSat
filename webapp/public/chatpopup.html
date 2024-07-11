@@ -116,6 +116,9 @@
 
         function simulatePayment(invoice, message, amount, videoId) {
             const serverUrl = window.location.origin;
+            console.log('Simulating payment with:', { invoice, message, amount, videoId });
+            console.log('Sending request to:', `${serverUrl}/simulate-payment`);
+            
             fetch(`${serverUrl}/simulate-payment`, {
                 method: 'POST',
                 headers: {
@@ -123,10 +126,14 @@
                 },
                 body: JSON.stringify({ invoice, message, amount, videoId }),
             })
-            .then(response => response.json())
+            .then(response => {
+                console.log('Response status:', response.status);
+                return response.json();
+            })
             .then(data => {
+                console.log('Response data:', data);
                 if (data.success) {
-                    document.getElementById('payment-status').textContent = 'Payment simulated successfully!';
+                    document.getElementById('payment-status').textContent = data.message || 'Payment simulated successfully!';
                     document.getElementById('qrcode').style.display = 'none';
                     document.getElementById('simulate-payment-button').style.display = 'none';
                 } else {
@@ -136,9 +143,6 @@
             .catch(error => {
                 console.error('Error simulating payment:', error);
                 document.getElementById('payment-status').textContent = 'Error simulating payment: ' + (error.message || 'Unknown error');
-                if (error.details) {
-                    console.error('Error details:', error.details);
-                }
             });
         }
     </script>

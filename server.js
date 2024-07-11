@@ -77,31 +77,10 @@ app.get('/check-invoice/:invoice', async (req, res) => {
 
 app.post('/simulate-payment', async (req, res) => {
     const { invoice, message, amount, videoId } = req.body;
-    try {
-        console.log('Payment simulated for invoice:', invoice);
-        console.log('Message:', message);
-        console.log('Amount:', amount);
-        console.log('Video ID:', videoId);
-
-        // Send message to YouTube chat
-        try {
-            const serverUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3001';
-            console.log('Posting to:', `${serverUrl}/post-message`);
-            const response = await axios.post(`${serverUrl}/post-message`, { 
-                message: `⚡ Superchat (${amount} sats): ${message}`,
-                videoId: videoId
-            });
-            console.log('YouTube API response:', response.data);
-            res.json({ success: true, message: 'Payment simulated and message posted to YouTube chat' });
-        } catch (botError) {
-            console.error('Error posting message to YouTube:', botError.message);
-            console.error('Error details:', botError.response ? botError.response.data : 'No response data');
-            res.status(500).json({ success: false, message: 'Error posting message to YouTube chat', error: botError.message, details: botError.response ? botError.response.data : 'No response data' });
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        res.status(500).json({ success: false, message: 'Error processing payment', error: error.message });
-    }
+    console.log('Payment simulation request received:', { invoice, message, amount, videoId });
+    
+    // Temporarily bypass YouTube posting
+    res.json({ success: true, message: 'Payment simulated successfully (YouTube posting bypassed)' });
 });
 
 app.post('/post-message', async (req, res) => {

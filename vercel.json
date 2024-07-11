@@ -16,6 +16,10 @@
       "dest": "/webapp/public/$1"
     },
     {
+      "src": "/simulate-payment",
+      "dest": "/server.js"
+    },
+    {
       "src": "/(.*)",
       "dest": "/server.js"
     }

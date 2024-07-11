@@ -11,11 +11,13 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@lightsparkdev/lightspark-sdk": "^1.5.0",
+    "@lightsparkdev/lightspark-sdk": "^1.6.0",
     "@lightsparkdev/wallet-sdk": "^0.12.13",
     "axios": "^1.7.2",
     "body-parser": "^1.20.2",
     "dotenv": "^16.4.5",
-    "express": "^4.19.2"
+    "express": "^4.19.2",
+    "qrcode": "^1.5.3",
+    "qrcode.react": "^3.1.0"
   }
 }

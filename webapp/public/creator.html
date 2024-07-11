@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lightning Superchat - Creator Setup</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        input, button {
+            display: block;
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Lightning Superchat Setup</h1>
+    <input type="text" id="video-url" placeholder="Enter your YouTube Live URL">
+    <button onclick="generateSuperchatUrl()">Generate Superchat URL</button>
+    <p id="result"></p>
+
+    <script>
+        function generateSuperchatUrl() {
+            const videoUrl = document.getElementById('video-url').value;
+            const videoId = extractVideoId(videoUrl);
+            if (videoId) {
+                const superchatUrl = `${window.location.origin}/superchat?vid=${videoId}`;
+                document.getElementById('result').innerHTML = `
+                    Your Superchat URL:<br>
+                    <a href="${superchatUrl}" target="_blank">${superchatUrl}</a><br>
+                    Pin this URL in your YouTube Live chat.
+                `;
+            } else {
+                document.getElementById('result').textContent = 'Invalid YouTube URL. Please try again.';
+            }
+        }
+
+        function extractVideoId(url) {
+            try {
+                const parsedUrl = new URL(url);
+                const hostname = parsedUrl.hostname;
+
+                if (hostname.includes('youtube.com') || hostname.includes('youtu.be')) {
+                    if (parsedUrl.pathname.startsWith('/live/')) {
+                        // Handle live stream URLs
+                        return parsedUrl.pathname.split('/')[2];
+                    } else if (parsedUrl.searchParams.has('v')) {
+                        // Handle standard YouTube URLs
+                        return parsedUrl.searchParams.get('v');
+                    } else if (hostname === 'youtu.be') {
+                        // Handle shortened URLs
+                        return parsedUrl.pathname.slice(1);
+                    }
+                }
+            } catch (error) {
+                console.error('Error parsing URL:', error);
+            }
+            return null;
+        }
+    </script>
+</body>
+</html>

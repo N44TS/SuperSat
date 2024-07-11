@@ -1,16 +1,17 @@
-import express from 'express';
-import bodyParser from 'body-parser';
-import path from 'path';
-import axios from 'axios';
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
-import { dirname } from 'path';
+import { dirname, join } from 'path';
+import express from 'express';
+import bodyParser from 'body-parser';
+import axios from 'axios';
+import path from 'path';
 import { AccountTokenAuthProvider, LightsparkClient, InvoiceType, BitcoinNetwork } from "@lightsparkdev/lightspark-sdk";
-
-dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+
+// Load .env file from the root directory
+dotenv.config({ path: join(__dirname, '..', '.env') });
 
 const app = express();
 const port = 3000;
@@ -27,6 +28,14 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+app.get('/creator', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'creator.html'));
+});
+
+app.get('/superchat', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'chatpopup.html'));
 });
 
 async function createInvoice(amount, memo) {
@@ -69,20 +78,13 @@ async function createInvoice(amount, memo) {
 }
 
 app.post('/send-message', async (req, res) => {
-    const { message, amount } = req.body;
+    const { message, amount, videoId } = req.body;
     console.log('Received message:', message);
     console.log('Amount:', amount);
+    console.log('Video ID:', videoId);
 
     try {
         const invoice = await createInvoice(amount, message);
-        
-        try {
-            await axios.post('http://localhost:3001/post-message', { message });
-        } catch (botError) {
-            console.error('Error posting message to bot:', botError);
-            // Continue even if bot is not available
-        }
-
         res.json({ invoice, status: 'Invoice created' });
     } catch (error) {
         console.error('Error:', error);
@@ -119,14 +121,15 @@ async function checkInvoiceStatus(invoice) {
 
         console.log("Invoice data:", JSON.stringify(invoiceData, null, 2));
 
-        if (invoiceData.invoice) {
+        if (invoiceData && invoiceData.invoice) {
             return { paid: invoiceData.invoice.status === 'PAID', expired: invoiceData.invoice.status === 'EXPIRED' };
         } else {
-            throw new Error("Invoice not found");
+            console.warn("Invoice not found or invalid response structure");
+            return { paid: false, expired: false };
         }
     } catch (error) {
         console.error("Error checking invoice status:", error);
-        throw error;
+        return { paid: false, expired: false, error: error.message };
     }
 }
 
@@ -141,17 +144,27 @@ app.get('/check-invoice/:invoice', async (req, res) => {
 });
 
 app.post('/simulate-payment', async (req, res) => {
-    const { invoice } = req.body;
+    const { invoice, message, amount, videoId } = req.body;
     try {
-        // In a real scenario, you'd update the invoice status in your database
-        // For demo purposes, we'll just return a success response
-        // You might want to add a delay here to simulate processing time
-        setTimeout(() => {
-            res.json({ success: true, message: 'Payment simulated successfully' });
-        }, 2000); // 2 second delay
+        console.log('Payment simulated for invoice:', invoice);
+        console.log('Message:', message);
+        console.log('Amount:', amount);
+        console.log('Video ID:', videoId);
+
+        // Send message to YouTube chat
+        try {
+            await axios.post('http://localhost:3001/post-message', { 
+                message: `⚡ Superchat (${amount} sats): ${message}`,
+                videoId: videoId
+            });
+            res.json({ success: true, message: 'Payment simulated and message posted to YouTube chat' });
+        } catch (botError) {
+            console.error('Error posting message to YouTube:', botError);
+            res.status(500).json({ success: false, message: 'Error posting message to YouTube chat' });
+        }
     } catch (error) {
-        console.error('Error simulating payment:', error);
-        res.status(500).json({ success: false, message: 'Error simulating payment' });
+        console.error('Error:', error);
+        res.status(500).json({ success: false, message: 'Error processing payment', error: error.message });
     }
 });
 

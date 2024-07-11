@@ -5,6 +5,7 @@ const axios = require('axios');
 const path = require('path');
 const { AccountTokenAuthProvider, LightsparkClient, InvoiceType, BitcoinNetwork } = require("@lightsparkdev/lightspark-sdk");
 const { google } = require('googleapis');
+const cors = require('cors');
 
 dotenv.config();
 const app = express();
@@ -34,6 +35,8 @@ app.use(express.static(path.join(__dirname, 'webapp', 'public')));
 // Include route handlers from webapp/index.js
 const { createInvoice, checkInvoiceStatus } = require('./webapp/index');
 const { postToYouTubeChat, getLiveChatId } = require('./chatbot/index');
+
+app.use(cors());
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'webapp', 'public', 'index.html'));
@@ -82,7 +85,7 @@ app.post('/simulate-payment', async (req, res) => {
 
         // Send message to YouTube chat
         try {
-            await axios.post('http://localhost:3001/post-message', { 
+            await axios.post(`${process.env.VERCEL_URL || 'http://localhost:3001'}/post-message`, { 
                 message: `⚡ Superchat (${amount} sats): ${message}`,
                 videoId: videoId
             });

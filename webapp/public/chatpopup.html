@@ -33,7 +33,8 @@
             const message = document.getElementById('message').value;
             const amount = document.getElementById('amount').value;
             if (message && amount) {
-                fetch('/send-message', {
+                const serverUrl = window.location.origin; // This will work for both local and Vercel deployments
+                fetch(`${serverUrl}/send-message`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -75,7 +76,7 @@
                     return;
                 }
 
-                fetch(`/check-invoice/${invoice}`)
+                fetch(`${process.env.VERCEL_URL || 'http://localhost:3001'}/check-invoice/${invoice}`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.paid) {
@@ -108,7 +109,8 @@
         };
 
         function simulatePayment(invoice, message, amount, videoId) {
-            fetch('/simulate-payment', {
+            const serverUrl = window.location.origin; // This will work for both local and Vercel deployments
+            fetch(`${serverUrl}/simulate-payment`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

@@ -154,7 +154,7 @@ app.post('/simulate-payment', async (req, res) => {
 
         // Send message to YouTube chat
         try {
-            await axios.post('http://localhost:3001/post-message', { 
+            await axios.post(`${process.env.VERCEL_URL || 'http://localhost:3001'}/post-message`, { 
                 message: `⚡ Superchat (${amount} sats): ${message}`,
                 videoId: videoId
             });

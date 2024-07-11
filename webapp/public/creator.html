@@ -32,9 +32,8 @@
             if (videoId) {
                 const superchatUrl = `${window.location.origin}/superchat?vid=${videoId}`;
                 document.getElementById('result').innerHTML = `
-                    Your Superchat URL:<br>
-                    <a href="${superchatUrl}" target="_blank">${superchatUrl}</a><br>
-                    Pin this URL in your YouTube Live chat.
+                    Your Superchat URL (pin this in your YouTube Live chat):<br>
+                    <a href="${superchatUrl}" target="_blank" onclick="window.open(this.href, 'Superchat', 'width=400,height=600'); return false;">${superchatUrl}</a>
                 `;
             } else {
                 document.getElementById('result').textContent = 'Invalid YouTube URL. Please try again.';

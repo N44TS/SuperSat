@@ -35,7 +35,12 @@ app.get('/creator', (req, res) => {
 });
 
 app.get('/superchat', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'chatpopup.html'));
+    res.send(`
+        <script>
+            window.resizeTo(400, 600);
+            window.location.href = '/chatpopup.html?vid=${req.query.vid}';
+        </script>
+    `);
 });
 
 async function createInvoice(amount, memo) {

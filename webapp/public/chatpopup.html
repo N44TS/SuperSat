@@ -3,148 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Send a Lightning Superchat</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <style>
-        body { font-family: Arial, sans-serif; max-width: 400px; margin: 0 auto; padding: 20px; }
-        input, textarea, button { display: block; width: 100%; margin-bottom: 10px; padding: 10px; }
-        #qrcode { margin-top: 20px; }
-    </style>
-</head>
-<body>
-    <h1>Send a Lightning Superchat</h1>
-    <textarea id="message" placeholder="Enter your Superchat message" rows="4"></textarea>
-    <input type="number" id="amount" placeholder="Amount in sats">
-    <button onclick="sendSuperchat()">Send Superchat</button>
-    <div id="invoice-container" style="display:none;">
-        <h2>Invoice Details</h2>
-        <p>Please pay the following invoice:</p>
-        <pre id="invoice"></pre>
-        <div id="qrcode"></div>
-        <div id="payment-status"></div>
-        <button id="simulate-payment-button" style="display:none;">Simulate Payment</button>
-    </div>
-
+    <title>Redirecting to Superchat</title>
     <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const videoId = urlParams.get('vid');
-
-        function sendSuperchat() {
-            const message = document.getElementById('message').value;
-            const amount = document.getElementById('amount').value;
-            if (message && amount) {
-                const serverUrl = window.location.origin;
-                fetch(`${serverUrl}/send-message`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ message, amount: parseInt(amount), videoId }),
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.invoice) {
-                        document.getElementById('invoice').textContent = data.invoice;
-                        document.getElementById('invoice-container').style.display = 'block';
-                        document.getElementById('payment-status').textContent = 'Waiting for payment...';
-                        document.getElementById('simulate-payment-button').style.display = 'block';
-                        
-                        // Clear previous QR code if any
-                        document.getElementById('qrcode').innerHTML = '';
-                        // Generate new QR code
-                        new QRCode(document.getElementById("qrcode"), data.invoice);
-
-                        // Start checking payment status
-                        checkPaymentStatus(data.invoice);
-                    } else {
-                        throw new Error(data.status || 'Unknown error');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Error creating invoice: ' + error.message);
-                });
-            }
-        }
-
-        function checkPaymentStatus(invoice) {
-            let checkCount = 0;
-            const maxChecks = 60; // Stop checking after 5 minutes (60 * 5 seconds)
-
-            const checkStatus = () => {
-                if (checkCount >= maxChecks) {
-                    document.getElementById('payment-status').textContent = 'Payment timeout. Please try again.';
-                    return;
-                }
-
-                fetch(`${window.location.origin}/check-invoice/${invoice}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.paid) {
-                            document.getElementById('payment-status').textContent = 'Payment received! Your message will appear in the chat soon.';
-                            document.getElementById('qrcode').style.display = 'none';
-                        } else if (data.expired) {
-                            document.getElementById('payment-status').textContent = 'Invoice expired. Please try again.';
-                            document.getElementById('qrcode').style.display = 'none';
-                        } else {
-                            checkCount++;
-                            setTimeout(checkStatus, 5000); // Check again in 5 seconds
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error checking payment status:', error);
-                        document.getElementById('payment-status').textContent = 'Error checking payment status';
-                    });
-            };
-
-            checkStatus();
-        }
-
-        document.getElementById('simulate-payment-button').onclick = function() {
-            const invoice = document.getElementById('invoice').textContent;
-            const message = document.getElementById('message').value;
-            const amount = document.getElementById('amount').value;
+        window.onload = function() {
             const urlParams = new URLSearchParams(window.location.search);
             const videoId = urlParams.get('vid');
-            simulatePayment(invoice, message, amount, videoId);
+            const popupUrl = `${window.location.origin}/superchat?vid=${videoId}`;
+            const popup = window.open(popupUrl, 'Superchat', 'width=400,height=600');
+            if (popup) {
+                window.close();
+            } else {
+                document.body.innerHTML = '<p>Please allow popups for this site to use the Superchat feature.</p>';
+            }
         };
-
-        function simulatePayment(invoice, message, amount, videoId) {
-            const serverUrl = window.location.origin;
-            console.log('Simulating payment with:', { invoice, message, amount, videoId });
-            console.log('Sending request to:', `${serverUrl}/simulate-payment`);
-            
-            fetch(`${serverUrl}/simulate-payment`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ invoice, message, amount, videoId }),
-            })
-            .then(response => {
-                console.log('Response status:', response.status);
-                return response.json();
-            })
-            .then(data => {
-                console.log('Response data:', data);
-                if (data.success) {
-                    document.getElementById('payment-status').textContent = data.message || 'Payment simulated successfully!';
-                    document.getElementById('qrcode').style.display = 'none';
-                    document.getElementById('simulate-payment-button').style.display = 'none';
-                } else {
-                    throw new Error(data.message || 'Unknown error');
-                }
-            })
-            .catch(error => {
-                console.error('Error simulating payment:', error);
-                document.getElementById('payment-status').textContent = 'Error simulating payment: ' + (error.message || 'Unknown error');
-            });
-        }
     </script>
+</head>
+<body>
+    <p>Redirecting to Superchat...</p>
 </body>
 </html>

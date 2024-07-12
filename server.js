@@ -47,6 +47,10 @@ app.get('/creator', (req, res) => {
 });
 
 app.get('/superchat', (req, res) => {
+    res.sendFile(path.join(__dirname, 'webapp', 'public', 'superchat.html'));
+});
+
+app.get('/chatpopup', (req, res) => {
     res.sendFile(path.join(__dirname, 'webapp', 'public', 'chatpopup.html'));
 });
 

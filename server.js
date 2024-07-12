@@ -79,8 +79,23 @@ app.post('/simulate-payment', async (req, res) => {
     const { invoice, message, amount, videoId } = req.body;
     console.log('Payment simulation request received:', { invoice, message, amount, videoId });
     
-    // Temporarily bypass YouTube posting
-    res.json({ success: true, message: 'Payment simulated successfully (YouTube posting bypassed)' });
+    try {
+        console.log('Getting live chat ID for video:', videoId);
+        const liveChatId = await getLiveChatId(videoId);
+        console.log('Live chat ID obtained:', liveChatId);
+
+        const fullMessage = `⚡ Superchat (${amount} sats): ${message}`;
+        console.log('Prepared message:', fullMessage);
+
+        console.log('Posting message to YouTube chat...');
+        await postToYouTubeChat(fullMessage, liveChatId);
+        console.log('Message posted successfully');
+
+        res.json({ success: true, message: 'Payment simulated and message posted to YouTube chat' });
+    } catch (error) {
+        console.error('Error in simulate-payment:', error);
+        res.status(500).json({ success: false, message: 'Error processing payment', error: error.message });
+    }
 });
 
 app.post('/post-message', async (req, res) => {

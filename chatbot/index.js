@@ -18,19 +18,29 @@ oauth2Client.setCredentials({
 });
 
 async function postToYouTubeChat(message, liveChatId) {
-    await youtube.liveChatMessages.insert({
-        auth: oauth2Client,
-        part: 'snippet',
-        resource: {
-            snippet: {
-                type: 'textMessageEvent',
-                liveChatId: liveChatId,
-                textMessageDetails: {
-                    messageText: message
+    console.log('Attempting to post message to YouTube chat:', message);
+    console.log('Live Chat ID:', liveChatId);
+    try {
+        const response = await youtube.liveChatMessages.insert({
+            auth: oauth2Client,
+            part: 'snippet',
+            resource: {
+                snippet: {
+                    type: 'textMessageEvent',
+                    liveChatId: liveChatId,
+                    textMessageDetails: {
+                        messageText: message
+                    }
                 }
             }
-        }
-    });
+        });
+        console.log('Message posted successfully:', response.data);
+        return response.data;
+    } catch (error) {
+        console.error('Error posting message to YouTube chat:', error.message);
+        console.error('Error details:', error.response ? error.response.data : 'No response data');
+        throw error;
+    }
 }
 
 async function getLiveChatId(videoId) {

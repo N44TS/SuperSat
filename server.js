@@ -86,6 +86,12 @@ app.post('/simulate-payment', async (req, res) => {
 app.post('/post-message', async (req, res) => {
     const { message, videoId } = req.body;
     console.log('Bot received message:', message, 'for video ID:', videoId);
+    console.log('YouTube API credentials:', {
+        clientId: process.env.YOUTUBE_CLIENT_ID ? 'Set' : 'Not set',
+        clientSecret: process.env.YOUTUBE_CLIENT_SECRET ? 'Set' : 'Not set',
+        redirectUri: process.env.YOUTUBE_REDIRECT_URI,
+        refreshToken: process.env.YOUTUBE_REFRESH_TOKEN ? 'Set' : 'Not set'
+    });
     try {
         console.log('Attempting to get live chat ID...');
         const liveChatId = await getLiveChatId(videoId);
@@ -100,6 +106,23 @@ app.post('/post-message', async (req, res) => {
         console.error('Error posting to YouTube:', error);
         console.error('Error details:', error.response ? error.response.data : 'No response data');
         res.status(500).json({ status: 'Error posting message', error: error.message, details: error.response ? error.response.data : 'No response data' });
+    }
+});
+
+app.get('/test-youtube-api/:videoId', async (req, res) => {
+    console.log('Testing YouTube API for video ID:', req.params.videoId);
+    console.log('YouTube API credentials:', {
+        clientId: process.env.YOUTUBE_CLIENT_ID ? 'Set' : 'Not set',
+        clientSecret: process.env.YOUTUBE_CLIENT_SECRET ? 'Set' : 'Not set',
+        redirectUri: process.env.YOUTUBE_REDIRECT_URI,
+        refreshToken: process.env.YOUTUBE_REFRESH_TOKEN ? 'Set' : 'Not set'
+    });
+    try {
+        const liveChatId = await getLiveChatId(req.params.videoId);
+        res.json({ success: true, liveChatId });
+    } catch (error) {
+        console.error('Error testing YouTube API:', error);
+        res.status(500).json({ success: false, error: error.message, stack: error.stack });
     }
 });
 

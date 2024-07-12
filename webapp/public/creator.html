@@ -22,21 +22,42 @@
 <body>
     <h1>Lightning Superchat Setup</h1>
     <input type="text" id="video-url" placeholder="Enter your YouTube Live URL">
+    <input type="text" id="lightning-address" placeholder="Enter your Lightning Address">
     <button onclick="generateSuperchatUrl()">Generate Superchat URL</button>
     <p id="result"></p>
 
     <script>
         function generateSuperchatUrl() {
             const videoUrl = document.getElementById('video-url').value;
+            const lightningAddress = document.getElementById('lightning-address').value;
             const videoId = extractVideoId(videoUrl);
-            if (videoId) {
-                const superchatUrl = `${window.location.origin}/chatpopup?vid=${videoId}`;
-                document.getElementById('result').innerHTML = `
-                    Your Superchat URL (pin this in your YouTube Live chat):<br>
-                    <a href="${superchatUrl}" target="_blank">${superchatUrl}</a>
-                `;
+            if (videoId && lightningAddress) {
+                fetch('/generate-short-url', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ videoId, lightningAddress }),
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const superchatUrl = `${window.location.origin}/s/${data.shortCode}`;
+                    document.getElementById('result').innerHTML = `
+                        Your Superchat URL (pin this in your YouTube Live chat):<br>
+                        <a href="${superchatUrl}" target="_blank">${superchatUrl}</a>
+                    `;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('result').textContent = `Error: ${error.message}`;
+                });
             } else {
-                document.getElementById('result').textContent = 'Invalid YouTube URL. Please try again.';
+                document.getElementById('result').textContent = 'Invalid input. Please try again.';
             }
         }
 

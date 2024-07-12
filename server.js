@@ -11,6 +11,8 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 3001; // Changed to 3001
 
+app.use(express.json()); // Added this line to parse JSON in request body
+
 const lightsparkClient = new LightsparkClient(
     new AccountTokenAuthProvider(
         process.env.LIGHTSPARK_API_TOKEN_ID,
@@ -47,7 +49,7 @@ app.get('/creator', (req, res) => {
 });
 
 app.get('/superchat', (req, res) => {
-    res.sendFile(path.join(__dirname, 'webapp', 'public', 'superchat.html'));
+    res.sendFile(path.join(__dirname, 'webapp', 'public', 'chatpopup.html'));
 });
 
 app.get('/chatpopup', (req, res) => {
@@ -55,13 +57,17 @@ app.get('/chatpopup', (req, res) => {
 });
 
 app.post('/send-message', async (req, res) => {
-    const { message, amount, videoId } = req.body;
+    const { message, amount, videoId, lightningAddress } = req.body;
     console.log('Received message:', message);
     console.log('Amount:', amount);
     console.log('Video ID:', videoId);
+    console.log('Lightning Address:', lightningAddress);
 
     try {
-        const invoice = await createInvoice(amount, message, lightsparkClient);
+        //  const invoice = await createInvoice(amount, message, lightsparkClient);
+        // use the creator lightningAddress to create an invoice
+        // that can be paid to the specific creator's wallet. 
+        const invoice = await createTestModeInvoice(amount, message, lightningAddress);
         res.json({ invoice, status: 'Invoice created' });
     } catch (error) {
         console.error('Error:', error);
@@ -144,6 +150,68 @@ app.get('/test-youtube-api/:videoId', async (req, res) => {
         res.status(500).json({ success: false, error: error.message, stack: error.stack });
     }
 });
+
+const shortUrls = new Map();
+
+function generateShortCode() {
+    return Math.random().toString(36).substr(2, 6);
+}
+
+app.post('/generate-short-url', (req, res) => {
+    const { videoId, lightningAddress } = req.body;
+    console.log('Received request:', { videoId, lightningAddress });
+    const shortCode = generateShortCode();
+    shortUrls.set(shortCode, { videoId, lightningAddress });
+    console.log('Generated short code:', shortCode);
+    res.json({ shortCode });
+});
+
+app.get('/s/:shortCode', (req, res) => {
+    const { shortCode } = req.params;
+    const urlData = shortUrls.get(shortCode);
+    if (urlData) {
+        res.redirect(`/superchat?vid=${urlData.videoId}&lnaddr=${urlData.lightningAddress}`);
+    } else {
+        res.status(404).send('Short URL not found');
+    }
+});
+
+async function createTestModeInvoice(amount, message, lightningAddress) {
+     // Use creator lightning address for invoice
+     //const memo = `${message} | Creator: ${lightningAddress}`;
+    
+     // In prod, change to use an actual invoice
+     // For demo purposes, we're returning a dummy invoice string for payment due to lightsparks own testnest(Regtest)
+    // return `lnbc${amount}n1p38q3g0sp5zyg3...${Buffer.from(memo).toString('base64')}`;
+    try {
+        const account = await lightsparkClient.getCurrentAccount();
+        if (!account) {
+            throw new Error("Unable to get account");
+        }
+        const nodes = await account.getNodes(lightsparkClient, undefined, [BitcoinNetwork.REGTEST]);
+        if (nodes.entities.length === 0) {
+            throw new Error("No nodes found for this account on REGTEST");
+        }
+        const nodeId = nodes.entities[0].id;
+
+        // Create Lightspark SDK test mode invoice
+        const testInvoice = await lightsparkClient.createTestModeInvoice(
+            nodeId,
+            amount * 1000, // Convert to millisatoshis
+            `${message} | Creator: ${lightningAddress}` // Include creator's address in memo
+        );
+
+        if (!testInvoice) {
+            throw new Error("Unable to create the test invoice.");
+        }
+
+        console.log(`Test invoice created: ${testInvoice}`);
+        return testInvoice;
+    } catch (error) {
+        console.error("Error creating test mode invoice:", error);
+        throw error;
+    }
+}
 
 if (require.main === module) {
   app.listen(port, () => {

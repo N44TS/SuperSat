@@ -8,12 +8,14 @@
         window.onload = function() {
             const urlParams = new URLSearchParams(window.location.search);
             const videoId = urlParams.get('vid');
-            const popupUrl = `${window.location.origin}/superchat?vid=${videoId}`;
+            const lightningAddress = urlParams.get('lnaddr');
+            const popupUrl = `${window.location.origin}/superchat.html?vid=${videoId}&lnaddr=${lightningAddress}`;
             const popup = window.open(popupUrl, 'Superchat', 'width=400,height=600');
             if (popup) {
                 window.close();
             } else {
-                document.body.innerHTML = '<p>Please allow popups for this site to use the Superchat feature.</p>';
+                // Fallback for when popups are blocked
+                window.location.href = popupUrl;
             }
         };
     </script>

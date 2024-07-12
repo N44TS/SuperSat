@@ -6,23 +6,154 @@
     <title>Lightning Superchat</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; max-width: 400px; margin: 0 auto; padding: 20px; }
-        input, textarea, button { display: block; width: 100%; margin-bottom: 10px; padding: 10px; }
-        #qrcode { margin-top: 20px; }
+        :root {
+            --primary-color: #4a90e2;
+            --secondary-color: #f39c12;
+            --background-color: #f0f4f8;
+            --card-background: #ffffff;
+            --text-color: #333333;
+            --border-radius: 12px;
+            --box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        }
+
+        body, html {
+            font-family: 'Arial', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.4;
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 20px;
+            width: 100%;
+            max-width: 320px;
+            text-align: center;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        h2 {
+            color: var(--secondary-color);
+            margin-top: 15px;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        input, textarea, button {
+            width: calc(100% - 20px);
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: var(--border-radius);
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s, transform 0.1s;
+            width: 100%;
+        }
+
+        #invoice {
+            background-color: #f9f9f9;
+            padding: 10px;
+            border-radius: var(--border-radius);
+            font-family: monospace;
+            white-space: pre-wrap;
+            word-break: break-all;
+            text-align: left;
+            font-size: 12px;
+            margin-bottom: 10px;
+            border: 1px solid #e0e0e0;
+            max-height: 80px;
+            overflow-y: auto;
+        }
+
+        #qrcode {
+            display: flex;
+            justify-content: center;
+            margin: 15px 0;
+        }
+
+        #qrcode img {
+            width: 150px;
+            height: 150px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        #payment-status {
+            font-weight: bold;
+            margin-top: 10px;
+            padding: 8px;
+            border-radius: var(--border-radius);
+            background-color: #e8f4fd;
+            color: var(--primary-color);
+            font-size: 14px;
+        }
+
+        #simulate-payment-button {
+            background-color: var(--secondary-color);
+            margin-top: 10px;
+        }
+
+        #success-message {
+            display: none;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body>
-    <h1>Send a Lightning Superchat</h1>
-    <textarea id="message" placeholder="Enter your Superchat message" rows="4"></textarea>
-    <input type="number" id="amount" placeholder="Amount in sats">
-    <button onclick="sendSuperchat()">Send Superchat</button>
-    <div id="invoice-container" style="display:none;">
-        <h2>Invoice Details</h2>
-        <p>Please pay the following invoice:</p>
-        <pre id="invoice"></pre>
-        <div id="qrcode"></div>
-        <div id="payment-status"></div>
-        <button id="simulate-payment-button" style="display:none;">Simulate Payment</button>
+    <div class="container">
+        <div id="superchat-form">
+            <h1>⚡ Lightning Superchat</h1>
+            <textarea id="message" placeholder="Enter your Superchat message" rows="4"></textarea>
+            <input type="number" id="amount" placeholder="Amount in sats">
+            <button onclick="sendSuperchat()">Send Superchat</button>
+        </div>
+        <div id="invoice-container" style="display:none;">
+            <h2>Invoice Details</h2>
+            <p>Please pay the following invoice:</p>
+            <pre id="invoice"></pre>
+            <div id="qrcode"></div>
+            <div id="payment-status"></div>
+            <button id="simulate-payment-button" style="display:none;">Simulate Payment</button>
+        </div>
+        <div id="success-message" style="display:none;">
+            <h2>Payment Successful!</h2>
+            <p>Your Superchat has been posted to YouTube.</p>
+            <p><strong>Message:</strong> <span id="success-message-text"></span></p>
+            <p><strong>Amount:</strong> <span id="success-amount-text"></span> sats</p>
+        </div>
     </div>
 
     <script>
@@ -44,16 +175,12 @@
                 .then(data => {
                     if (data.invoice) {
                         document.getElementById('invoice').textContent = data.invoice;
+                        document.getElementById('superchat-form').style.display = 'none';
                         document.getElementById('invoice-container').style.display = 'block';
                         document.getElementById('payment-status').textContent = 'Waiting for payment...';
                         document.getElementById('simulate-payment-button').style.display = 'block';
                         
-                        // Clear previous QR code if any
-                        document.getElementById('qrcode').innerHTML = '';
-                        // Generate new QR code
-                        new QRCode(document.getElementById("qrcode"), data.invoice);
-
-                        // Start checking payment status
+                        createQRCode(data.invoice);
                         checkPaymentStatus(data.invoice);
                     }
                 })
@@ -64,9 +191,21 @@
             }
         }
 
+        function createQRCode(invoice) {
+            document.getElementById('qrcode').innerHTML = '';
+            new QRCode(document.getElementById("qrcode"), {
+                text: invoice,
+                width: 150,
+                height: 150,
+                colorDark : "#000000",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.M
+            });
+        }
+
         function checkPaymentStatus(invoice) {
             let checkCount = 0;
-            const maxChecks = 60; // Stop checking after 5 minutes (60 * 5 seconds)
+            const maxChecks = 60;
 
             const checkStatus = () => {
                 if (checkCount >= maxChecks) {
@@ -78,14 +217,13 @@
                     .then(response => response.json())
                     .then(data => {
                         if (data.paid) {
-                            document.getElementById('payment-status').textContent = 'Payment received!';
-                            document.getElementById('qrcode').style.display = 'none';
+                            showSuccessMessage();
                         } else if (data.expired) {
                             document.getElementById('payment-status').textContent = 'Invoice expired. Please try again.';
                             document.getElementById('qrcode').style.display = 'none';
                         } else {
                             checkCount++;
-                            setTimeout(checkStatus, 5000); // Check again in 5 seconds
+                            setTimeout(checkStatus, 5000);
                         }
                     })
                     .catch(error => {
@@ -115,15 +253,20 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    document.getElementById('payment-status').textContent = 'Payment simulated successfully!';
-                    document.getElementById('qrcode').style.display = 'none';
-                    document.getElementById('simulate-payment-button').style.display = 'none';
+                    showSuccessMessage();
                 }
             })
             .catch(error => {
                 console.error('Error simulating payment:', error);
                 alert('Error simulating payment. Please try again.');
             });
+        }
+
+        function showSuccessMessage() {
+            document.getElementById('invoice-container').style.display = 'none';
+            document.getElementById('success-message').style.display = 'block';
+            document.getElementById('success-message-text').textContent = document.getElementById('message').value;
+            document.getElementById('success-amount-text').textContent = document.getElementById('amount').value;
         }
     </script>
 </body>

@@ -3,193 +3,370 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SuperSat - Lightning Superchat for Creators</title>
+    <title>SuperSat ⚡</title>
     <style>
-        :root {
-            --primary-color: #4a90e2;
-            --secondary-color: #f39c12;
-            --background-color: #f0f4f8;
-            --card-background: #ffffff;
-            --text-color: #333333;
-            --border-radius: 12px;
-            --box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
-        }
-
-        body, html {
-            font-family: 'Arial', sans-serif;
-            background-color: var(--background-color);
-            color: var(--text-color);
-            line-height: 1.6;
-            margin: 0;
-            padding: 0;
-            min-height: 100vh;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 40px 20px;
-        }
-
-        header {
-            text-align: center;
-            margin-bottom: 60px;
-        }
-
-        .logo {
-            font-size: 48px;
-            font-weight: bold;
-            color: var(--primary-color);
-        }
-
+    .app {
+        text-align: center;
+        vertical-align: center;
+    }
+    
+    *,
+    ::after,
+    ::before {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+        Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+        background-color: var(--clr-grey-7);
+        color: var(--clr-grey-1);
+        font-size: 0.875rem;
+        background-size: cover;
+        height: 100%;
+    }
+    ul {
+        list-style-type: none;
+    }
+    a {
+        text-decoration: none;
+    }
+    h1,
+    h2, 
+    h3,
+    h4,
+    h1 {
+        color: pink;
+        font-size: 3rem;
+    }
+    h2 {
+        font-size: 2rem;
+    }
+    h3 {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+            Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+        font-weight: normal;
+        font-size: 1.5rem;
+        line-height: 2rem;
+        color: #5c5c5c;
+        margin-top: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    p {
+        margin-bottom: 1.25rem;
+        color: #5c5c5c;
+    }
+    @media screen and (min-width: 800px) {
         h1 {
-            font-size: 36px;
-            margin-top: 20px;
-            color: var(--text-color);
+        font-size: 4rem;
         }
-
-        .tagline {
-            font-size: 18px;
-            color: #666;
-            margin-top: 10px;
+        h2 {
+        font-size: 2.5rem;
         }
-
-        .content {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 40px;
+        h3 {
+        font-size: 1.75rem;
         }
+        h4 {
+        font-size: 1rem;
+        }
+        body {
+        font-size: 1rem;
+        }
+        h1,
+        h2,
+        h3,
+        h4 {
+        line-height: 1;
+        }
+    }
+    
+    .grid > * {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .left-column {
+        width: 55%;
+        background: url(/src/heartsbg.jpg);
+        float: left;
+        text-align: center;
+        height: 100vh;
+        max-height:100%; 
+    }
+    
+    .header-content {
+        padding-top: 35px;
+        padding-bottom: 35px; 
+        width: 80%;
+        text-align: center;
+        margin: 3.5rem auto; 
+    }
+    
+    .main-title {
+        text-align: center;
+        font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+        font-weight: 800;
+        font-size: 7vw;
+        line-height: 1;
+        padding: 30px 15px 15px 15px;
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-color: #3f0d12;
+        background-image: linear-gradient(to bottom right, #3f0d12, #a71d31);
+    }
 
+    h2 {
+        text-align: center;
+        font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+        font-weight: 800;
+        font-size: 4vw;
+        line-height: 1;
+        padding: 15px 10px 10px 10px;
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-color: #3f0d12;
+        background-image: linear-gradient(to bottom right, #3f0d12, #a71d31);
+    }
+
+    h3, h4 {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+            Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+        font-weight: normal;
+        font-size: 1.5rem;
+        line-height: 2rem;
+        color: #5c5c5c;
+        margin-top: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .right-column {
+        float: left;
+        width: 45%;
+        min-height: 100vh;
+    }
+    
+    .form-container {
+        padding-top: 35px;
+        padding-bottom: 35px; 
+        width: 80%;
+        text-align: center;
+        margin: 4.5rem auto; 
+        border-radius: 20px;
+        box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+        background-color: #efecec;
+        background-image: linear-gradient(315deg, #eae6e7 0%, #ffd1dc 74%);
+        color: #5c5c5c;
+    }
+    
+    .form-container p {
+        margin-top: 1.25rem;
+        padding: 0rem 1.5rem;
+        font-size: 0.9rem;
+    }
+
+    .form-container h1 {
+        font-size: 2.5rem;
+    }
+    
+    input {
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        outline: 0;
+        border: 1px solid rgba(164, 13, 13, 0.4);
+        background-color: rgba(255, 255, 255, 0.2);
+        width: 80%;
+        border-radius: 3px;
+        padding: 10px 15px;
+        margin: 25px auto 10px auto;
+        display: block;
+        text-align: center;
+        font-size: 18px;
+        color: #a71d31;
+        -webkit-text-fill-color: #a71d31;
+        transition-duration: 0.25s;
+        font-weight: 300;
+        max-width: 80%; 
+        max-height: 80%;
+    }
+    
+    input:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(183, 28, 28, 0.2);
+    }
+
+    .generated-url {
+        margin: 2rem;
+        padding: 2rem;
+        background-color: rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
+        word-break: break-all;
+        font-size: 0.9rem;
+        color: #5c5c5c;
+    }
+        
+    .generated-url p {
+        margin: 0;
+        padding: 0;
+    }
+        
+    .submit-button {
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        outline: 0;
+        background-color: #AA0114;
+        border: 0;
+        padding: 15px 15px;
+        margin-top: 20px;
+        color: white;
+        border-radius: 12px;
+        width: 250px;
+        cursor: pointer;
+        font-size: 18px;
+        transition-duration: 0.25s;
+        background: linear-gradient(to bottom right, #3f0d12, #a71d31, #aaa9ad);
+        background-blend-mode: color-dodge, overlay, difference, difference, normal;
+        background-size: 400% 400%;
+        animation: gradient 8s ease infinite;
+    }
+
+    .submit-button:hover {
+        background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+        background-size: 400% 400%;
+        animation: gradient 10s ease infinite;
+    }
+
+    @keyframes gradient {
+        0% {
+            background-position: 0% 50%;
+        }
+        50% {
+            background-position: 100% 50%;
+        }
+        100% {
+            background-position: 0% 50%;
+        }
+    }
+    
+    @media screen and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 1) {
+        .right-column {
+            width: 100vw;
+            min-height: auto;
+        }
+    
+        .left-column {
+            width: 100vw;
+            height: auto;
+        }
+    
+        .form-container {
+            width: 80vw;
+        }
+    }
+    
+    @media screen and (max-width: 600px) {
+        .right-column {
+            width: 100%;
+            text-align: center;
+            min-height: auto;
+        }
+    
+        .left-column {
+            width: 100vw;
+            height: auto;
+        }
+    
+        .main-title {
+            font-size: 3rem;
+        } 
+    
+        .form-container {
+            font-size: 0.7rem;
+            width: 92vw;
+            padding: 25px 0px;
+            margin-top: auto;
+        } 
+    }
+
+    .features {
+        display: flex;
+        justify-content: space-around;
+        margin-top: 2rem;
+        text-align: left;
+    }
+
+    .feature {
+        width: 45%;
+        background-color: rgba(255, 255, 255, 0.1);
+        padding: 1rem;
+        border-radius: 10px;
+        backdrop-filter: blur(5px);
+    }
+
+    .feature h4 {
+        color: #a71d31;
+        font-size: 1.2rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .feature p {
+        font-size: 0.9rem;
+        color: #333;
+    }
+
+    @media screen and (max-width: 768px) {
         .features {
-            flex: 1;
+            flex-direction: column;
+            align-items: center;
         }
 
         .feature {
-            background-color: var(--card-background);
-            border-radius: var(--border-radius);
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: var(--box-shadow);
+            width: 80%;
+            margin-bottom: 1rem;
         }
-
-        .feature h2 {
-            color: var(--primary-color);
-            margin-top: 0;
-        }
-
-        .setup-form {
-            flex: 1;
-            background-color: var(--card-background);
-            border-radius: var(--border-radius);
-            padding: 30px;
-            box-shadow: var(--box-shadow);
-        }
-
-        .setup-form h2 {
-            color: var(--primary-color);
-            margin-top: 0;
-            margin-bottom: 20px;
-        }
-
-        label {
-            font-weight: bold;
-            margin-bottom: 5px;
-            display: block;
-        }
-
-        input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: var(--border-radius);
-            font-size: 16px;
-            margin-bottom: 20px;
-            transition: all 0.3s ease;
-        }
-
-        input:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2);
-        }
-
-        button {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 15px 20px;
-            border-radius: var(--border-radius);
-            font-size: 18px;
-            cursor: pointer;
-            transition: background-color 0.3s, transform 0.1s;
-            width: 100%;
-        }
-
-        button:hover {
-            background-color: #3a7bc8;
-            transform: translateY(-2px);
-        }
-
-        button:active {
-            transform: translateY(0);
-        }
-
-        #result {
-            margin-top: 20px;
-            padding: 20px;
-            background-color: #e8f4fd;
-            border-radius: var(--border-radius);
-            font-size: 16px;
-            word-break: break-all;
-        }
-
-        #result a {
-            color: var(--primary-color);
-            text-decoration: none;
-            font-weight: bold;
-        }
-
-        #result a:hover {
-            text-decoration: underline;
-        }
+    }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <div class="logo">⚡ SuperSat</div>
-            <h1>Lightning Superchat for Creators</h1>
-            <p class="tagline">Monetize your live streams with Bitcoin Lightning Network. Keep your 30%!</p>
-        </header>
-        
-        <div class="content">
-            <div class="features">
-                <div class="feature">
-                    <h2>Instant Payments</h2>
-                    <p>Receive payments in real-time during your live streams using the Lightning Network.</p>
-                </div>
-                <div class="feature">
-                    <h2>Easy Setup</h2>
-                    <p>Get started in minutes with just your YouTube Live URL and Lightning Address.</p>
-                </div>
-                <div class="feature">
-                    <h2>Engage Your Audience</h2>
-                    <p>Encourage viewer interaction with lightning-fast microtransactions.</p>
+    <div class="app">
+        <div class="grid">
+            <div class="left-column">
+                <div class="header-content">
+                    <h1 class="main-title">SuperSat ⚡ </h1>
+                    <h2>Lightning Superchat for Creators</h2>
+                    <h3>Monetize your live streams with Bitcoin Lightning Network. Keep your 30%!</h3>
+                    
+                    <div class="features">
+                        <div class="feature">
+                            <h4>Instant Payments</h4>
+                            <p>Receive payments in real-time during your live streams using the Lightning Network.</p>
+                        </div>
+                        <div class="feature">
+                            <h4>Easy Setup</h4>
+                            <p>Input your YouTube Live URL and Lightning Address, then share the generated link with your viewers on your live.</p>
+                        </div>
+                    </div>
                 </div>
             </div>
             
-            <div class="setup-form">
-                <h2>Create Your SuperSat Link</h2>
-                <label for="video-url">YouTube Live URL</label>
-                <input type="text" id="video-url" placeholder="Enter your YouTube Live URL">
-                
-                <label for="lightning-address">Lightning Address</label>
-                <input type="text" id="lightning-address" placeholder="Enter your Lightning Address">
-                
-                <button onclick="generateSuperchatUrl()">Generate SuperSat Link</button>
-                
-                <div id="result"></div>
+            <div class="right-column">
+                <div class="form-container">                            
+                    <h1>Create your supersat link</h1>
+                    <p>Create a url to pin in your live chat</p>
+                    <input type="text" id="video-url" placeholder="Enter your YouTube Live URL" />
+                    <input type="text" id="lightning-address" placeholder="Enter your Lightning address" />
+                    <button class="submit-button" onclick="generateSuperchatUrl()">Generate SuperSat Link</button>
+                    <div id="result" class="generated-url">
+                        <p>Your generated URL will appear here</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

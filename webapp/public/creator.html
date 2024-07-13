@@ -332,7 +332,56 @@
             margin-bottom: 1rem;
         }
     }
-    </style>
+
+    .instructions {
+        background-color: rgba(255, 255, 255, 0.3);
+        border-radius: 10px;
+        padding: 1rem;
+        margin: 1rem;
+        text-align: left;
+    }
+
+    .instructions h4 {
+        color: #a71d31;
+        margin-bottom: 0.5rem;
+    }
+
+    .instructions ol {
+        padding-left: 1.5rem;
+    }
+
+    .instructions li {
+        margin-bottom: 0.5rem;
+    }
+
+    .checkbox-container {
+        margin: 20px 0;
+        text-align: left;
+        padding-left: 10%;
+        padding-right: 10%;
+        display: flex;
+        align-items: center;
+    }
+
+    .checkbox-container input[type="checkbox"] {
+        margin-right: 10px;
+        width: 20px;
+        height: 20px;
+        -webkit-appearance: checkbox;
+        -moz-appearance: checkbox;
+        appearance: checkbox;
+        vertical-align: middle;
+        margin-top: 0px;
+  margin-bottom: 0px
+    }
+
+    .checkbox-container label {
+        font-size: 0.8rem;
+        color: #5c5c5c;
+        line-height: 1.2;
+        flex: 1;
+    }
+</style>
 </head>
 <body>
     <div class="app">
@@ -358,10 +407,22 @@
             
             <div class="right-column">
                 <div class="form-container">                            
+                    <div class="instructions">
+                        <h4>Important Setup Steps:</h4>
+                        <ol>
+                            <li>Add our bot "<strong>Nat</strong>" as a moderator to your YouTube channel.</li>
+                            <li>Enter your YouTube Live URL and Lightning address below.</li>
+                            <li>Generate and share the SuperSat link with your viewers.</li>
+                        </ol>
+                    </div>
                     <h1>Create your supersat link</h1>
                     <p>Create a url to pin in your live chat</p>
                     <input type="text" id="video-url" placeholder="Enter your YouTube Live URL" />
                     <input type="text" id="lightning-address" placeholder="Enter your Lightning address" />
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="bot-added" required>
+                        <label for="bot-added">I have added "Nat" as a moderator to my YouTube channel</label>
+                    </div>
                     <button class="submit-button" onclick="generateSuperchatUrl()">Generate SuperSat Link</button>
                     <div id="result" class="generated-url">
                         <p>Your generated URL will appear here</p>
@@ -375,7 +436,14 @@
         function generateSuperchatUrl() {
             const videoUrl = document.getElementById('video-url').value;
             const lightningAddress = document.getElementById('lightning-address').value;
+            const botAdded = document.getElementById('bot-added').checked;
             const videoId = extractVideoId(videoUrl);
+
+            if (!botAdded) {
+                document.getElementById('result').textContent = 'Please add "Nat" as a moderator to your YouTube channel before generating the link.';
+                return;
+            }
+
             if (videoId && lightningAddress) {
                 fetch('/generate-short-url', {
                     method: 'POST',

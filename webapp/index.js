@@ -22,9 +22,9 @@ const lightsparkClient = new LightsparkClient(
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
+// app.get('/', (req, res) => {
+//     res.sendFile(path.join(__dirname, 'public', 'creator.html'));
+// });
 
 app.get('/creator', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'creator.html'));

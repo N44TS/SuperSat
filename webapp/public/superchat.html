@@ -40,7 +40,7 @@
         }
 
         h1 {
-            color: var(--primary-color);
+            color: #a71d31;
             margin-bottom: 15px;
             font-size: 24px;
             font-weight: 700;
@@ -69,13 +69,38 @@
         }
 
         button {
-            background-color: var(--primary-color);
+            background: linear-gradient(to bottom right, #3f0d12, #a71d31, #aaa9ad);
             color: white;
             border: none;
             cursor: pointer;
             font-weight: bold;
             transition: background-color 0.3s, transform 0.1s;
             width: 100%;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.1s;
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.3s, height 0.3s;
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        button:active::before {
+            width: 300px;
+            height: 300px;
         }
 
         #invoice {
@@ -141,7 +166,7 @@
             <button onclick="sendSuperchat()">Send Superchat</button>
         </div>
         <div id="invoice-container" style="display:none;">
-            <h2>Invoice Details</h2>
+            <h1>Invoice Details</h1>
             <p>Please pay the following invoice:</p>
             <pre id="invoice"></pre>
             <div id="qrcode"></div>

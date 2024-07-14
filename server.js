@@ -179,14 +179,19 @@ app.get('/s/:shortCode', (req, res) => {
     }
 });
 
-app.post('/start-monitoring', (req, res) => {
+app.post('/start-monitoring', async (req, res) => {
     const { videoId } = req.body;
     console.log('Starting monitoring for video ID:', videoId);
-    monitorLiveChat(videoId).catch(error => {
+    try {
+        const response = await fetch(`${process.env.VERCEL_URL || 'http://localhost:3001'}/api/monitor-chat?videoId=${videoId}`);
+        if (!response.ok) {
+            throw new Error('Failed to start monitoring');
+        }
+        res.json({ success: true });
+    } catch (error) {
         console.error('Failed to start monitoring:', error);
         res.status(500).json({ success: false, error: error.message });
-    });
-    res.json({ success: true });
+    }
 });
 
 async function createTestModeInvoice(amount, message, lightningAddress) {

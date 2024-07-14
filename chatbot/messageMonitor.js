@@ -23,10 +23,13 @@ async function monitorLiveChat(videoId) {
 
                 for (const message of response.data.items) {
                     const messageText = message.snippet.textMessageDetails.messageText;
-                    if (isSuperchatFormat(messageText) && !isValidMessage(messageText)) {
-                        console.log('Fake superchat detected:', messageText);
-                        await deleteMessage(message.id, liveChatId);
-                        console.log('Fake superchat deleted');
+                    if (!isValidMessage(messageText) && !isSuperchatFormat(messageText)) {
+                        console.log(`Attempting to delete message: ${message.id}`);
+                        try {
+                            await deleteMessage(message.id, liveChatId);
+                        } catch (error) {
+                            console.error(`Error deleting message: ${error.message}`);
+                        }
                     }
                 }
             } catch (error) {

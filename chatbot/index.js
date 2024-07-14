@@ -59,6 +59,7 @@ async function getLiveChatId(videoId) {
 
 async function deleteMessage(messageId, liveChatId) {
     try {
+        console.log(`Deleting message ${messageId} from chat ${liveChatId}`);
         await youtube.liveChatMessages.delete({
             auth: oauth2Client,
             id: messageId,

@@ -229,6 +229,17 @@ async function createTestModeInvoice(amount, message, lightningAddress) {
     }
 }
 
+let debugLogs = [];
+
+function addLog(message) {
+    debugLogs.push(`${new Date().toISOString()}: ${message}`);
+    if (debugLogs.length > 100) debugLogs.shift();
+}
+
+app.get('/debug-logs', (req, res) => {
+    res.json(debugLogs);
+});
+
 if (require.main === module) {
   app.listen(port, () => {
     console.log(`Server running on port ${port}`);

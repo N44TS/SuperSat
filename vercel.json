@@ -27,7 +27,7 @@
   "functions": {
     "api/monitor-chat.js": {
       "memory": 1024,
-      "maxDuration": 6
+      "maxDuration": 10
     }
   }
 }

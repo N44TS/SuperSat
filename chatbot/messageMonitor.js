@@ -25,16 +25,24 @@ async function monitorLiveChat(videoId) {
           const messageText = message.snippet.textMessageDetails.messageText;
           if (isSuperchatFormat(messageText) && !isValidMessage(messageText)) {
             console.log('Fake superchat detected:', messageText);
-            await deleteMessage(message.id, liveChatId);
-            console.log('Fake superchat deleted');
+            try {
+              await deleteMessage(message.id, liveChatId);
+              console.log('Fake superchat deleted');
+            } catch (deleteError) {
+              console.error('Error deleting message:', deleteError);
+            }
           }
         }
       } catch (error) {
         console.error('Error fetching live chat messages:', error);
         if (error.code === 403) {
-          console.log('Live stream ended or bot removed. Stopping monitor.');
+          console.log('Permission error. Check OAuth2 scopes.');
+        } else if (error.code === 404) {
+          console.log('Live stream ended or chat not found. Stopping monitor.');
           clearInterval(intervalId);
           monitoringIntervals.delete(videoId);
+        } else {
+          console.log('Unexpected error. Continuing to monitor.');
         }
       }
     }, 10000); // Check every 10 seconds

@@ -1,4 +1,5 @@
-const dotenv = require('dotenv');
+require('dotenv').config(); // Ensure this is at the very top
+
 const express = require('express');
 const bodyParser = require('body-parser');
 const axios = require('axios');
@@ -8,8 +9,8 @@ const { google } = require('googleapis');
 const cors = require('cors');
 const { monitorLiveChat } = require('./chatbot/messageMonitor');
 const { addValidMessage } = require('./chatbot/messageValidator');
+const { postToYouTubeChat } = require('./chatbot/index'); // Ensure this is imported
 
-dotenv.config();
 const app = express();
 const port = process.env.PORT || 3001; // Changed to 3001
 
@@ -21,6 +22,11 @@ const lightsparkClient = new LightsparkClient(
         process.env.LIGHTSPARK_API_TOKEN_SECRET
     )
 );
+
+if (!process.env.LIGHTSPARK_API_TOKEN_ID || !process.env.LIGHTSPARK_API_TOKEN_SECRET) {
+    console.error('Lightspark API credentials are missing');
+    process.exit(1);
+}
 
 const youtube = google.youtube('v3');
 const oauth2Client = new google.auth.OAuth2(
@@ -37,7 +43,7 @@ app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'webapp', 'public')));
 
 // Include route handlers from webapp/index.js
-const { createInvoice, checkInvoiceStatus } = require('./webapp/index');
+const { createInvoice } = require('./webapp/index');
 const { getLiveChatId } = require('./chatbot/index');
 
 app.use(cors());
@@ -75,7 +81,7 @@ app.post('/send-message', async (req, res) => {
 
 app.get('/check-invoice/:invoice', async (req, res) => {
     try {
-        const status = await checkInvoiceStatus(req.params.invoice, lightsparkClient);
+        const status = await checkInvoiceStatus(req.params.invoice);
         res.json(status);
     } catch (error) {
         console.error('Error checking invoice status:', error);
@@ -217,6 +223,13 @@ async function createTestModeInvoice(amount, message, lightningAddress) {
         console.error("Error creating test mode invoice:", error);
         throw error;
     }
+}
+
+async function checkInvoiceStatus(invoice) {
+    // For demo purposes, we're simulating a payment after a short delay
+    // In a real implementation, you would check the actual status of the invoice
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    return { paid: true };
 }
 
 app.get('/keep-alive', (req, res) => {

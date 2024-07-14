@@ -164,7 +164,7 @@ app.post('/generate-short-url', (req, res) => {
     shortUrls.set(shortCode, { videoId, lightningAddress });
     console.log('Generated short code:', shortCode);
     
-    // Start monitoring the live chat
+    // Start monitoring immediately
     monitorLiveChat(videoId).catch(error => {
         console.error('Failed to start monitoring:', error);
     });
@@ -180,6 +180,16 @@ app.get('/s/:shortCode', (req, res) => {
     } else {
         res.status(404).send('Short URL not found');
     }
+});
+
+app.post('/start-monitoring', (req, res) => {
+    const { videoId } = req.body;
+    console.log('Starting monitoring for video ID:', videoId);
+    monitorLiveChat(videoId).catch(error => {
+        console.error('Failed to start monitoring:', error);
+        res.status(500).json({ success: false, error: error.message });
+    });
+    res.json({ success: true });
 });
 
 async function createTestModeInvoice(amount, message, lightningAddress) {

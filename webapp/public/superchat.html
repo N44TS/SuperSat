@@ -293,6 +293,20 @@
             document.getElementById('success-message-text').textContent = document.getElementById('message').value;
             document.getElementById('success-amount-text').textContent = document.getElementById('amount').value;
         }
+
+        function monitorChat() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const videoId = urlParams.get('vid');
+            
+            if (videoId) {
+                fetch(`/api/monitor-chat?videoId=${videoId}`)
+                    .then(response => response.json())
+                    .then(data => console.log('Chat monitored:', data))
+                    .catch(error => console.error('Error monitoring chat:', error));
+            }
+        }
+
+        setInterval(monitorChat, 10000); // Call every 10 seconds
     </script>
 </body>
 </html>

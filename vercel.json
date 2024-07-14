@@ -20,6 +20,10 @@
       "dest": "/server.js"
     },
     {
+      "src": "/api/monitor-chat",
+      "dest": "/api/monitor-chat.js"
+    },
+    {
       "src": "/(.*)",
       "dest": "/server.js"
     }

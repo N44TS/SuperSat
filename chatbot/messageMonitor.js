@@ -37,7 +37,7 @@ async function monitorLiveChat(videoId) {
                     monitoringIntervals.delete(videoId);
                 }
             }
-        }, 10000); // Check every 10 seconds
+        }, 10000);
 
         monitoringIntervals.set(videoId, intervalId);
 

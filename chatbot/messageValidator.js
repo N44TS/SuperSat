@@ -13,7 +13,7 @@ function isValidMessage(message) {
 }
 
 function isSuperchatFormat(message) {
-    const regex = /^⚡ Superchat \(\d+ sats\):/;
+    const regex = /^⚡ Superchat \(\d+ sats\): .+/;
     return regex.test(message);
 }
 

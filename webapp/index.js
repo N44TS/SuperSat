@@ -136,15 +136,11 @@ async function checkInvoiceStatus(invoice) {
 
 app.get('/check-invoice/:invoice', async (req, res) => {
     try {
-        console.log('Attempting to use REGTEST...');
-        const status = await lightsparkClient.getInvoice(req.params.invoice);
-        if (!status) {
-            throw new Error('Invoice not found');
-        }
-        res.json({ status: status.status });
+        const status = await checkInvoiceStatus(req.params.invoice);
+        res.json(status);
     } catch (error) {
         console.error('Error checking invoice status:', error);
-        res.status(500).json({ error: 'Error checking invoice status', details: error.message });
+        res.status(500).json({ error: 'Error checking invoice status' });
     }
 });
 

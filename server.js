@@ -32,6 +32,13 @@ oauth2Client.setCredentials({
     refresh_token: process.env.YOUTUBE_REFRESH_TOKEN
 });
 
+console.log('OAuth2 Client initialized with:', {
+    clientId: process.env.YOUTUBE_CLIENT_ID ? 'Set' : 'Not set',
+    clientSecret: process.env.YOUTUBE_CLIENT_SECRET ? 'Set' : 'Not set',
+    redirectUri: process.env.YOUTUBE_REDIRECT_URI,
+    refreshToken: process.env.YOUTUBE_REFRESH_TOKEN ? 'Set' : 'Not set'
+});
+
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'webapp', 'public')));
 

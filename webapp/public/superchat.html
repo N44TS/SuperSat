@@ -295,9 +295,7 @@
         }
 
         function monitorChat() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const videoId = urlParams.get('vid');
-            
+            const videoId = new URLSearchParams(window.location.search).get('vid');
             if (videoId) {
                 fetch(`/api/monitor-chat?videoId=${videoId}`)
                     .then(response => response.json())

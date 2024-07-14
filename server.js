@@ -99,7 +99,7 @@ app.post('/simulate-payment', async (req, res) => {
         await postToYouTubeChat(fullMessage, liveChatId);
         console.log('Message posted successfully');
 
-        addValidMessage(fullMessage);
+        addValidMessage(fullMessage); // Added this line to add the valid message to the set
 
         res.json({ success: true, message: 'Payment simulated and message posted to YouTube chat' });
     } catch (error) {

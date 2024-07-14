@@ -166,7 +166,7 @@ app.post('/generate-short-url', (req, res) => {
     
     // Start monitoring immediately
     monitorLiveChat(videoId).catch(error => {
-        console.error('Failed to start monitoring:', error);
+        addLog(`Failed to start monitoring: ${error.message}`);
     });
     
     res.json({ shortCode });

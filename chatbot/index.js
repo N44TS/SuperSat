@@ -17,6 +17,11 @@ oauth2Client.setCredentials({
     refresh_token: process.env.YOUTUBE_REFRESH_TOKEN
 });
 
+if (!oauth2Client.credentials || !oauth2Client.credentials.access_token) {
+    addLog('OAuth2 credentials are missing or invalid');
+    // Implement a way to refresh the token if needed
+}
+
 async function postToYouTubeChat(message, liveChatId) {
     console.log('Attempting to post message to YouTube chat:', message);
     console.log('Live Chat ID:', liveChatId);
@@ -58,16 +63,16 @@ async function getLiveChatId(videoId) {
 }
 
 async function deleteMessage(messageId, liveChatId) {
+    console.log(`Attempting to delete message: ${messageId} from chat: ${liveChatId}`);
     try {
-        console.log(`Deleting message ${messageId} from chat ${liveChatId}`);
         await youtube.liveChatMessages.delete({
             auth: oauth2Client,
             id: messageId,
             liveChatId: liveChatId
         });
-        console.log('Message deleted successfully:', messageId);
+        console.log(`Successfully deleted message: ${messageId}`);
     } catch (error) {
-        console.error('Error deleting message:', error);
+        console.error(`Error deleting message: ${error.message}`);
     }
 }
 

@@ -9,7 +9,7 @@ function addValidMessage(message) {
 }
 
 function isValidMessage(message) {
-    return validMessages.has(message);
+    return validMessages.has(message) || isSuperchatFormat(message);
 }
 
 function isSuperchatFormat(message) {

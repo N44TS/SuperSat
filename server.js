@@ -38,7 +38,7 @@ app.use(express.static(path.join(__dirname, 'webapp', 'public')));
 
 // Include route handlers from webapp/index.js
 const { createInvoice, checkInvoiceStatus } = require('./webapp/index');
-const { postToYouTubeChat, getLiveChatId } = require('./chatbot/index');
+const { getLiveChatId } = require('./chatbot/index');
 
 app.use(cors());
 

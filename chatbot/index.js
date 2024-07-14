@@ -1,37 +1,42 @@
-const { youtube, oauth2Client, getLiveChatId, deleteMessage } = require('../chatbot/index');
-const { isValidMessage } = require('../chatbot/messageValidator');
+const { google } = require('googleapis');
+const OAuth2 = google.auth.OAuth2;
 
-let lastCheckedMessageId = '';
+const oauth2Client = new OAuth2(
+  process.env.YOUTUBE_CLIENT_ID,
+  process.env.YOUTUBE_CLIENT_SECRET,
+  process.env.YOUTUBE_REDIRECT_URI
+);
 
-module.exports = async function handler(req, res) {
-  const { videoId } = req.query;
+// Set the refresh token
+oauth2Client.setCredentials({
+  refresh_token: process.env.YOUTUBE_REFRESH_TOKEN
+});
 
-  if (!videoId) {
-    return res.status(400).json({ error: 'Video ID is required' });
-  }
+const youtube = google.youtube({
+  version: 'v3',
+  auth: oauth2Client
+});
 
-  try {
-    const liveChatId = await getLiveChatId(videoId);
-    const response = await youtube.liveChatMessages.list({
-      auth: oauth2Client,
-      liveChatId: liveChatId,
-      part: 'snippet,id',
-      pageToken: lastCheckedMessageId ? undefined : null,
-    });
+async function getLiveChatId(videoId) {
+  const response = await youtube.videos.list({
+    part: 'liveStreamingDetails',
+    id: videoId
+  });
 
-    for (const message of response.data.items) {
-      if (!isValidMessage(message.snippet.displayMessage)) {
-        await deleteMessage(message.id, liveChatId);
-      }
-    }
+  const liveStreamingDetails = response.data.items[0].liveStreamingDetails;
+  return liveStreamingDetails.activeLiveChatId;
+}
 
-    if (response.data.items.length > 0) {
-      lastCheckedMessageId = response.data.items[response.data.items.length - 1].id;
-    }
+async function deleteMessage(messageId, liveChatId) {
+  await youtube.liveChatMessages.delete({
+    id: messageId,
+    auth: oauth2Client
+  });
+}
 
-    res.status(200).json({ success: true, messagesChecked: response.data.items.length });
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ error: 'Failed to monitor chat' });
-  }
+module.exports = {
+  youtube,
+  oauth2Client,
+  getLiveChatId,
+  deleteMessage
 };

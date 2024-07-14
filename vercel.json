@@ -21,7 +21,7 @@
     },
     {
       "src": "/api/monitor-chat",
-      "dest": "/api/monitor-chat.js"
+      "dest": "/server.js"
     },
     {
       "src": "/(.*)",

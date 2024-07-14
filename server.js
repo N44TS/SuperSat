@@ -249,16 +249,9 @@ app.get('/api/monitor-chat', async (req, res) => {
   }
 });
 
-if (require.main === module) {
+if (process.env.NODE_ENV !== 'production') {
   app.listen(port, () => {
     console.log(`Server running on port ${port}`);
-  }).on('error', (err) => {
-    if (err.code === 'EADDRINUSE') {
-      console.error(`Port ${port} is already in use. Try a different port.`);
-    } else {
-      console.error('An error occurred:', err);
-    }
-    process.exit(1);
   });
 }
 

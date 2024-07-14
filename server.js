@@ -7,7 +7,6 @@ const { AccountTokenAuthProvider, LightsparkClient, InvoiceType, BitcoinNetwork 
 const { google } = require('googleapis');
 const cors = require('cors');
 const { monitorLiveChat } = require('./chatbot/messageMonitor');
-const { addValidMessage } = require('./chatbot/messageValidator');
 
 dotenv.config();
 const app = express();
@@ -99,8 +98,6 @@ app.post('/simulate-payment', async (req, res) => {
         await postToYouTubeChat(fullMessage, liveChatId);
         console.log('Message posted successfully');
 
-        addValidMessage(fullMessage);
-
         res.json({ success: true, message: 'Payment simulated and message posted to YouTube chat' });
     } catch (error) {
         console.error('Error in simulate-payment:', error);
@@ -159,14 +156,14 @@ function generateShortCode() {
 
 app.post('/generate-short-url', (req, res) => {
     const { videoId, lightningAddress } = req.body;
-    console.log('Received request:', { videoId, lightningAddress });
+    console.log('Generating short URL for:', { videoId, lightningAddress });
     const shortCode = generateShortCode();
     shortUrls.set(shortCode, { videoId, lightningAddress });
-    console.log('Generated short code:', shortCode);
+    console.log('Short URL generated:', shortCode);
     
     // Start monitoring immediately
     monitorLiveChat(videoId).catch(error => {
-        addLog(`Failed to start monitoring: ${error.message}`);
+        console.error('Failed to start monitoring: ' + error.message);
     });
     
     res.json({ shortCode });
@@ -229,16 +226,6 @@ async function createTestModeInvoice(amount, message, lightningAddress) {
     }
 }
 
-let debugLogs = [];
-
-function addLog(message) {
-    debugLogs.push(`${new Date().toISOString()}: ${message}`);
-    if (debugLogs.length > 100) debugLogs.shift();
-}
-
-app.get('/debug-logs', (req, res) => {
-    res.json(debugLogs);
-});
 
 if (require.main === module) {
   app.listen(port, () => {

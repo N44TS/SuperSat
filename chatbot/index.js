@@ -18,7 +18,7 @@ oauth2Client.setCredentials({
 });
 
 if (!oauth2Client.credentials || !oauth2Client.credentials.access_token) {
-    addLog('OAuth2 credentials are missing or invalid');
+    console.log('OAuth2 credentials are missing or invalid');
     // Implement a way to refresh the token if needed
 }
 

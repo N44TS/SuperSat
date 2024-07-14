@@ -4,10 +4,9 @@ const { isValidMessage, isSuperchatFormat } = require('./messageValidator');
 let monitoringIntervals = new Map();
 
 async function monitorLiveChat(videoId) {
-    addLog(`Starting to monitor chat for video ${videoId}`);
-    console.log(`Starting to monitor chat for video: ${videoId}`);
+    console.log(`Starting to monitor chat for video ${videoId}`);
     const liveChatId = await getLiveChatId(videoId);
-    addLog(`Got live chat ID: ${liveChatId}`);
+    console.log(`Got live chat ID: ${liveChatId}`);
 
     const intervalId = setInterval(async () => {
         try {
@@ -18,16 +17,16 @@ async function monitorLiveChat(videoId) {
             });
 
             response.data.items.forEach(async (message) => {
-                addLog(`Received message: ${message.snippet.displayMessage}`);
+                console.log(`Processing message: ${message.snippet.displayMessage}`);
                 if (!isValidMessage(message.snippet.displayMessage)) {
-                    addLog(`Message not valid, attempting to delete: ${message.id}`);
+                    console.log(`Invalid message detected: ${message.snippet.displayMessage}`);
                     try {
                         await deleteMessage(message.id, liveChatId);
                     } catch (error) {
-                        addLog(`Error deleting message: ${error.message}`);
+                        console.error(`Error deleting message: ${error.message}`);
                     }
                 } else {
-                    addLog(`Message is valid, not deleting: ${message.id}`);
+                    console.log(`Valid message: ${message.snippet.displayMessage}`);
                 }
             });
 

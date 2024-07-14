@@ -372,7 +372,7 @@
                         </div>
                         <div class="feature">
                             <h4>Easy Setup</h4>
-                            <p>Input your YouTube Live URL and Lightning address, then share the generated link with your viewers on your live.</p>
+                            <p>Input your YouTube Live URL and Lightning Address, then share the generated link with your viewers on your live.</p>
                         </div>
                     </div>
                 </div>
@@ -428,7 +428,6 @@
                         Pin this in your YouTube Live chat:<br>
                         <a href="${superchatUrl}" target="_blank">${superchatUrl}</a>
                     `;
-                    startMonitoring(videoId);
                 })
                 .catch(error => {
                     console.error('Error:', error);
@@ -460,21 +459,6 @@
                 console.error('Error parsing URL:', error);
             }
             return null;
-        }
-
-        function startMonitoring(videoId) {
-            setInterval(() => {
-                fetch('/start-monitoring', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ videoId: videoId })
-                })
-                .then(response => response.json())
-                .then(data => console.log('Monitoring update:', data))
-                .catch(error => console.error('Monitoring error:', error));
-            }, 10000); // Run every 10 seconds
         }
     </script>
 </body>

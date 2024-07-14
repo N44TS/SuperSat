@@ -23,11 +23,5 @@
       "src": "/(.*)",
       "dest": "/server.js"
     }
-  ],
-  "functions": {
-    "api/monitor-chat.js": {
-      "memory": 1024,
-      "maxDuration": 10
-    }
-  }
+  ]
 }

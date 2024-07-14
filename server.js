@@ -7,6 +7,7 @@ const { AccountTokenAuthProvider, LightsparkClient, InvoiceType, BitcoinNetwork 
 const { google } = require('googleapis');
 const cors = require('cors');
 const { monitorLiveChat } = require('./chatbot/messageMonitor');
+const { addValidMessage } = require('./chatbot/messageValidator');
 
 dotenv.config();
 const app = express();
@@ -30,13 +31,6 @@ const oauth2Client = new google.auth.OAuth2(
 
 oauth2Client.setCredentials({
     refresh_token: process.env.YOUTUBE_REFRESH_TOKEN
-});
-
-console.log('OAuth2 Client initialized with:', {
-    clientId: process.env.YOUTUBE_CLIENT_ID ? 'Set' : 'Not set',
-    clientSecret: process.env.YOUTUBE_CLIENT_SECRET ? 'Set' : 'Not set',
-    redirectUri: process.env.YOUTUBE_REDIRECT_URI,
-    refreshToken: process.env.YOUTUBE_REFRESH_TOKEN ? 'Set' : 'Not set'
 });
 
 app.use(bodyParser.json());
@@ -105,6 +99,8 @@ app.post('/simulate-payment', async (req, res) => {
         await postToYouTubeChat(fullMessage, liveChatId);
         console.log('Message posted successfully');
 
+        addValidMessage(fullMessage);
+
         res.json({ success: true, message: 'Payment simulated and message posted to YouTube chat' });
     } catch (error) {
         console.error('Error in simulate-payment:', error);
@@ -163,14 +159,14 @@ function generateShortCode() {
 
 app.post('/generate-short-url', (req, res) => {
     const { videoId, lightningAddress } = req.body;
-    console.log('Generating short URL for:', { videoId, lightningAddress });
+    console.log('Received request:', { videoId, lightningAddress });
     const shortCode = generateShortCode();
     shortUrls.set(shortCode, { videoId, lightningAddress });
-    console.log('Short URL generated:', shortCode);
+    console.log('Generated short code:', shortCode);
     
-    // Start monitoring immediately
+    // Start monitoring the live chat
     monitorLiveChat(videoId).catch(error => {
-        console.error('Failed to start monitoring: ' + error.message);
+        console.error('Failed to start monitoring:', error);
     });
     
     res.json({ shortCode });
@@ -183,21 +179,6 @@ app.get('/s/:shortCode', (req, res) => {
         res.redirect(`/superchat?vid=${urlData.videoId}&lnaddr=${urlData.lightningAddress}`);
     } else {
         res.status(404).send('Short URL not found');
-    }
-});
-
-app.post('/start-monitoring', async (req, res) => {
-    const { videoId } = req.body;
-    console.log('Starting monitoring for video ID:', videoId);
-    try {
-        const response = await fetch(`${process.env.VERCEL_URL || 'http://localhost:3001'}/api/monitor-chat?videoId=${videoId}`);
-        if (!response.ok) {
-            throw new Error('Failed to start monitoring');
-        }
-        res.json({ success: true });
-    } catch (error) {
-        console.error('Failed to start monitoring:', error);
-        res.status(500).json({ success: false, error: error.message });
     }
 });
 
@@ -237,7 +218,6 @@ async function createTestModeInvoice(amount, message, lightningAddress) {
         throw error;
     }
 }
-
 
 if (require.main === module) {
   app.listen(port, () => {

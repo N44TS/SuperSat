@@ -6,7 +6,7 @@ const path = require('path');
 const { AccountTokenAuthProvider, LightsparkClient, InvoiceType, BitcoinNetwork } = require("@lightsparkdev/lightspark-sdk");
 const { google } = require('googleapis');
 const cors = require('cors');
-const { monitorLiveChat } = require('./chatbot/messageMonitor');
+const { checkLiveChat } = require('./chatbot/messageMonitor');
 const { addValidMessage } = require('./chatbot/messageValidator');
 
 dotenv.config();
@@ -165,7 +165,7 @@ app.post('/generate-short-url', (req, res) => {
     console.log('Generated short code:', shortCode);
     
     // Start monitoring the live chat
-    monitorLiveChat(videoId).catch(error => {
+    checkLiveChat(videoId).catch(error => {
         console.error('Failed to start monitoring:', error);
     });
     
@@ -218,6 +218,36 @@ async function createTestModeInvoice(amount, message, lightningAddress) {
         throw error;
     }
 }
+
+app.post('/api/start-monitoring', async (req, res) => {
+  const { videoId } = req.body;
+  if (!videoId) return res.status(400).json({ error: 'Video ID required' });
+
+  try {
+    // Start a background process or use a queue system to run continuous monitoring
+    // For simplicity, we'll just call checkLiveChat once here
+    checkLiveChat(videoId).catch(error => {
+      console.error('Error in continuous monitoring:', error);
+    });
+    res.status(200).json({ message: 'Monitoring started' });
+  } catch (error) {
+    console.error('Error starting monitoring:', error);
+    res.status(500).json({ error: 'Failed to start monitoring' });
+  }
+});
+
+app.get('/api/monitor-chat', async (req, res) => {
+  const { videoId } = req.query;
+  if (!videoId) return res.status(400).json({ error: 'Video ID required' });
+
+  try {
+    const result = await checkLiveChat(videoId);
+    res.status(200).json(result);
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ error: 'Failed to monitor chat' });
+  }
+});
 
 if (require.main === module) {
   app.listen(port, () => {

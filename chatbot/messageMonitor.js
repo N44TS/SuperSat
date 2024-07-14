@@ -1,59 +1,34 @@
 const { youtube, oauth2Client, getLiveChatId, deleteMessage } = require('./index');
 const { isValidMessage, isSuperchatFormat } = require('./messageValidator');
 
-let monitoringIntervals = new Map();
-
-async function monitorLiveChat(videoId) {
-    if (monitoringIntervals.has(videoId)) {
-        console.log(`Already monitoring video ${videoId}`);
-        return;
-    }
-
+async function checkLiveChat(videoId) {
     try {
         const liveChatId = await getLiveChatId(videoId);
-        console.log(`Starting to monitor live chat for video ${videoId}`);
+        const response = await youtube.liveChatMessages.list({
+            auth: oauth2Client,
+            liveChatId: liveChatId,
+            part: 'snippet',
+        });
 
-        const intervalId = setInterval(async () => {
-            try {
-                const response = await youtube.liveChatMessages.list({
-                    auth: oauth2Client,
-                    liveChatId: liveChatId,
-                    part: 'snippet',
-                });
-
-                for (const message of response.data.items) {
-                    const messageText = message.snippet.textMessageDetails.messageText;
-                    console.log('Checking message:', messageText);
-                    console.log('Is superchat format:', isSuperchatFormat(messageText));
-                    console.log('Is valid message:', isValidMessage(messageText));
-                    if (isSuperchatFormat(messageText) && !isValidMessage(messageText)) {
-                        console.log('Fake superchat detected:', messageText);
-                        await deleteMessage(message.id, liveChatId);
-                        console.log('Fake superchat deleted');
-                    }
-                }
-            } catch (error) {
-                console.error('Error fetching live chat messages:', error);
-                if (error.code === 403) {
-                    console.log('Live stream ended or bot removed. Stopping monitor.');
-                    clearInterval(intervalId);
-                    monitoringIntervals.delete(videoId);
-                }
+        let deletedCount = 0;
+        for (const message of response.data.items) {
+            const messageText = message.snippet.textMessageDetails.messageText;
+            console.log('Checking message:', messageText);
+            console.log('Is superchat format:', isSuperchatFormat(messageText));
+            console.log('Is valid message:', isValidMessage(messageText));
+            if (isSuperchatFormat(messageText) && !isValidMessage(messageText)) {
+                console.log('Fake superchat detected:', messageText);
+                await deleteMessage(message.id, liveChatId);
+                console.log('Fake superchat deleted');
+                deletedCount++;
             }
-        }, 10000);
+        }
 
-        monitoringIntervals.set(videoId, intervalId);
-
-        // Stop monitoring after 6 hours
-        setTimeout(() => {
-            clearInterval(intervalId);
-            monitoringIntervals.delete(videoId);
-            console.log(`Monitoring stopped for video ${videoId} after 6 hours`);
-        }, 6 * 60 * 60 * 1000);
-
+        return { checked: response.data.items.length, deleted: deletedCount };
     } catch (error) {
-        console.error('Error starting live chat monitor:', error);
+        console.error('Error checking live chat:', error);
+        throw error;
     }
 }
 
-module.exports = { monitorLiveChat };
+module.exports = { checkLiveChat };

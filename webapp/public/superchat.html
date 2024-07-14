@@ -294,7 +294,7 @@
             document.getElementById('success-amount-text').textContent = document.getElementById('amount').value;
         }
 
-        function monitorChat() {
+        function checkChat() {
             const videoId = new URLSearchParams(window.location.search).get('vid');
             if (videoId) {
                 fetch(`/api/monitor-chat?videoId=${videoId}`)
@@ -304,7 +304,7 @@
             }
         }
 
-        setInterval(monitorChat, 10000); // Call every 10 seconds
+        setInterval(checkChat, 10000); // Check every 10 seconds
     </script>
 </body>
 </html>

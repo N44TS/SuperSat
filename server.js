@@ -6,7 +6,7 @@ const path = require('path');
 const { AccountTokenAuthProvider, LightsparkClient, InvoiceType, BitcoinNetwork } = require("@lightsparkdev/lightspark-sdk");
 const { google } = require('googleapis');
 const cors = require('cors');
-const { checkLiveChat } = require('./chatbot/messageMonitor');
+const { monitorLiveChat } = require('./chatbot/messageMonitor');
 const { addValidMessage } = require('./chatbot/messageValidator');
 
 dotenv.config();
@@ -99,7 +99,7 @@ app.post('/simulate-payment', async (req, res) => {
         await postToYouTubeChat(fullMessage, liveChatId);
         console.log('Message posted successfully');
 
-        addValidMessage(fullMessage); // Added this line to add the valid message to the set
+        addValidMessage(fullMessage);
 
         res.json({ success: true, message: 'Payment simulated and message posted to YouTube chat' });
     } catch (error) {
@@ -165,7 +165,7 @@ app.post('/generate-short-url', (req, res) => {
     console.log('Generated short code:', shortCode);
     
     // Start monitoring the live chat
-    checkLiveChat(videoId).catch(error => {
+    monitorLiveChat(videoId).catch(error => {
         console.error('Failed to start monitoring:', error);
     });
     
@@ -219,39 +219,16 @@ async function createTestModeInvoice(amount, message, lightningAddress) {
     }
 }
 
-app.post('/api/start-monitoring', async (req, res) => {
-  const { videoId } = req.body;
-  if (!videoId) return res.status(400).json({ error: 'Video ID required' });
-
-  try {
-    // Start a background process or use a queue system to run continuous monitoring
-    // For simplicity, we'll just call checkLiveChat once here
-    checkLiveChat(videoId).catch(error => {
-      console.error('Error in continuous monitoring:', error);
-    });
-    res.status(200).json({ message: 'Monitoring started' });
-  } catch (error) {
-    console.error('Error starting monitoring:', error);
-    res.status(500).json({ error: 'Failed to start monitoring' });
-  }
-});
-
-app.get('/api/monitor-chat', async (req, res) => {
-  const { videoId } = req.query;
-  if (!videoId) return res.status(400).json({ error: 'Video ID required' });
-
-  try {
-    const result = await checkLiveChat(videoId);
-    res.status(200).json(result);
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ error: 'Failed to monitor chat' });
-  }
-});
-
-if (process.env.NODE_ENV !== 'production') {
+if (require.main === module) {
   app.listen(port, () => {
     console.log(`Server running on port ${port}`);
+  }).on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+      console.error(`Port ${port} is already in use. Try a different port.`);
+    } else {
+      console.error('An error occurred:', err);
+    }
+    process.exit(1);
   });
 }
 

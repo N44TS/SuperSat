@@ -372,7 +372,7 @@
                         </div>
                         <div class="feature">
                             <h4>Easy Setup</h4>
-                            <p>Input your YouTube Live URL and Lightning address, then share the generated link with your viewers on your live.</p>
+                            <p>Input your YouTube Live URL and Lightning Address, then share the generated link with your viewers on your live.</p>
                         </div>
                     </div>
                 </div>
@@ -380,14 +380,14 @@
             
             <div class="right-column">
                 <div class="form-container">                            
-                    <!-- <div class="instructions">
+                    <div class="instructions">
                         <h4>Important Setup Steps:</h4>
                         <ol>
                             <li>Add our bot "<strong>Nat</strong>" as a moderator to your YouTube channel.</li>
                             <li>Enter your YouTube Live URL and Lightning address below.</li>
                             <li>Generate and share the SuperSat link with your viewers.</li>
                         </ol>
-                    </div> -->
+                    </div>
                     <h1>Create your supersat link</h1>
                     <p>Create a url to pin in your live chat</p>
                     <input type="text" id="video-url" placeholder="Enter your YouTube Live URL" />
@@ -428,14 +428,6 @@
                         Pin this in your YouTube Live chat:<br>
                         <a href="${superchatUrl}" target="_blank">${superchatUrl}</a>
                     `;
-                    fetch('/api/start-monitoring', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ videoId })
-                    })
-                      .then(response => response.json())
-                      .then(data => console.log('Monitoring started:', data))
-                      .catch(error => console.error('Error starting monitoring:', error));
                 })
                 .catch(error => {
                     console.error('Error:', error);

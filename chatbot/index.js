@@ -1,9 +1,9 @@
-import { youtube, oauth2Client, getLiveChatId, deleteMessage } from '../chatbot/index';
-import { isValidMessage } from '../chatbot/messageValidator';
+const { youtube, oauth2Client, getLiveChatId, deleteMessage } = require('../chatbot/index');
+const { isValidMessage } = require('../chatbot/messageValidator');
 
 let lastCheckedMessageId = '';
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   const { videoId } = req.query;
 
   if (!videoId) {

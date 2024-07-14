@@ -8,6 +8,7 @@ const { google } = require('googleapis');
 const cors = require('cors');
 const { monitorLiveChat } = require('./chatbot/messageMonitor');
 const { addValidMessage } = require('./chatbot/messageValidator');
+const redis = require('redis');
 
 dotenv.config();
 const app = express();
@@ -218,6 +219,43 @@ async function createTestModeInvoice(amount, message, lightningAddress) {
         throw error;
     }
 }
+
+const redisClient = redis.createClient({
+  url: process.env.REDIS_URL
+});
+
+redisClient.on('error', (err) => console.error('Redis Client Error', err));
+redisClient.connect();
+
+app.get('/keep-alive', (req, res) => {
+  res.send('OK');
+});
+
+app.post('/generate-short-url', async (req, res) => {
+  const { videoId, lightningAddress } = req.body;
+  console.log('Received request:', { videoId, lightningAddress });
+  const shortCode = generateShortCode();
+  await redisClient.set(shortCode, JSON.stringify({ videoId, lightningAddress }));
+  console.log('Generated short code:', shortCode);
+
+  // Start monitoring the live chat
+  monitorLiveChat(videoId).catch(error => {
+    console.error('Failed to start monitoring:', error);
+  });
+
+  res.json({ shortCode });
+});
+
+app.get('/s/:shortCode', async (req, res) => {
+  const { shortCode } = req.params;
+  const urlData = await redisClient.get(shortCode);
+  if (urlData) {
+    const { videoId, lightningAddress } = JSON.parse(urlData);
+    res.redirect(`/superchat?vid=${videoId}&lnaddr=${lightningAddress}`);
+  } else {
+    res.status(404).send('Short URL not found');
+  }
+});
 
 if (require.main === module) {
   app.listen(port, () => {

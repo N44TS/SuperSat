@@ -155,6 +155,31 @@
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
+
+        button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .loader {
+            display: none;
+            width: 15px;
+            aspect-ratio: 1;
+            border-radius: 50%;
+            animation: l5 1s infinite linear alternate;
+            margin: 10px auto;
+        }
+
+        @keyframes l5 {
+            0%  {box-shadow: 20px 0 #a71d31, -20px 0 #a71d3133; background: #a71d31}
+            33% {box-shadow: 20px 0 #a71d31, -20px 0 #a71d3133; background: #a71d3133}
+            66% {box-shadow: 20px 0 #a71d3133, -20px 0 #a71d31; background: #a71d3133}
+            100%{box-shadow: 20px 0 #a71d3133, -20px 0 #a71d31; background: #a71d31}
+        }
+
+        button:disabled + .loader {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -163,7 +188,8 @@
             <h1>⚡ Lightning Superchat</h1>
             <textarea id="message" placeholder="Enter your Superchat message" rows="4"></textarea>
             <input type="number" id="amount" placeholder="Amount in sats">
-            <button onclick="sendSuperchat()">Send Superchat</button>
+            <button id="send-superchat-button" onclick="sendSuperchat()">Send Superchat</button>
+            <div class="loader"></div>
         </div>
         <div id="invoice-container" style="display:none;">
             <h1>Invoice Details</h1>
@@ -171,7 +197,8 @@
             <pre id="invoice"></pre>
             <div id="qrcode"></div>
             <div id="payment-status"></div>
-            <button id="simulate-payment-button" style="display:none;">pay now</button>
+            <button id="simulate-payment-button" style="display:none;">Pay Now</button>
+            <div class="loader"></div>
         </div>
         <div id="success-message" style="display:none;">
             <h2>Payment Successful!</h2>
@@ -188,7 +215,13 @@
         function sendSuperchat() {
             const message = document.getElementById('message').value;
             const amount = document.getElementById('amount').value;
+            const button = document.getElementById('send-superchat-button');
+            const loader = button.nextElementSibling;
+
             if (message && amount) {
+                button.disabled = true;
+                loader.style.display = 'block';
+
                 fetch('/send-message', {
                     method: 'POST',
                     headers: {
@@ -212,6 +245,10 @@
                 .catch(error => {
                     console.error('Error:', error);
                     alert('Error creating invoice. Please try again.');
+                })
+                .finally(() => {
+                    button.disabled = false;
+                    loader.style.display = 'none';
                 });
             }
         }
@@ -268,6 +305,12 @@
         function simulatePayment(invoice) {
             const message = document.getElementById('message').value;
             const amount = document.getElementById('amount').value;
+            const button = document.getElementById('simulate-payment-button');
+            const loader = button.nextElementSibling;
+
+            button.disabled = true;
+            loader.style.display = 'block';
+
             fetch('/simulate-payment', {
                 method: 'POST',
                 headers: {
@@ -284,6 +327,10 @@
             .catch(error => {
                 console.error('Error simulating payment:', error);
                 alert('Error simulating payment. Please try again.');
+            })
+            .finally(() => {
+                button.disabled = false;
+                loader.style.display = 'none';
             });
         }
 

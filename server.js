@@ -6,6 +6,8 @@ const path = require('path');
 const { AccountTokenAuthProvider, LightsparkClient, InvoiceType, BitcoinNetwork } = require("@lightsparkdev/lightspark-sdk");
 const { google } = require('googleapis');
 const cors = require('cors');
+const { monitorLiveChat } = require('./chatbot/messageMonitor');
+const { addValidMessage } = require('./chatbot/messageValidator');
 
 dotenv.config();
 const app = express();
@@ -97,6 +99,8 @@ app.post('/simulate-payment', async (req, res) => {
         await postToYouTubeChat(fullMessage, liveChatId);
         console.log('Message posted successfully');
 
+        addValidMessage(fullMessage);
+
         res.json({ success: true, message: 'Payment simulated and message posted to YouTube chat' });
     } catch (error) {
         console.error('Error in simulate-payment:', error);
@@ -159,6 +163,12 @@ app.post('/generate-short-url', (req, res) => {
     const shortCode = generateShortCode();
     shortUrls.set(shortCode, { videoId, lightningAddress });
     console.log('Generated short code:', shortCode);
+    
+    // Start monitoring the live chat
+    monitorLiveChat(videoId).catch(error => {
+        console.error('Failed to start monitoring:', error);
+    });
+    
     res.json({ shortCode });
 });
 

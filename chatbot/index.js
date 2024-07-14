@@ -57,7 +57,23 @@ async function getLiveChatId(videoId) {
     return response.data.items[0].liveStreamingDetails.activeLiveChatId;
 }
 
+async function deleteMessage(messageId, liveChatId) {
+    try {
+        await youtube.liveChatMessages.delete({
+            auth: oauth2Client,
+            id: messageId,
+            liveChatId: liveChatId
+        });
+        console.log('Message deleted successfully:', messageId);
+    } catch (error) {
+        console.error('Error deleting message:', error);
+    }
+}
+
 module.exports = {
-  postToYouTubeChat,
-  getLiveChatId
+    youtube,
+    oauth2Client,
+    postToYouTubeChat,
+    getLiveChatId,
+    deleteMessage
 };

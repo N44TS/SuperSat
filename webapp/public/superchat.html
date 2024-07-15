@@ -227,11 +227,17 @@
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ message, amount: parseInt(amount), videoId }),
+                    body: JSON.stringify({ 
+                        message, 
+                        amount: parseInt(amount), 
+                        videoId,
+                        lightningAddress: new URLSearchParams(window.location.search).get('lnaddr')
+                    }),
                 })
                 .then(response => response.json())
                 .then(data => {
                     if (data.invoice) {
+                        console.log('Invoice details:', data.invoice);
                         document.getElementById('invoice').textContent = data.invoice;
                         document.getElementById('superchat-form').style.display = 'none';
                         document.getElementById('invoice-container').style.display = 'block';
@@ -278,6 +284,7 @@
                 fetch(`/check-invoice/${invoice}`)
                     .then(response => response.json())
                     .then(data => {
+                        console.log('Invoice details:', invoice);
                         if (data.paid) {
                             showSuccessMessage();
                         } else if (data.expired) {

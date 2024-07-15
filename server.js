@@ -9,6 +9,7 @@ const { google } = require('googleapis');
 const cors = require('cors');
 const { monitorLiveChat } = require('./chatbot/messageMonitor');
 const { addValidMessage } = require('./chatbot/messageValidator');
+const { createInvoice, checkInvoiceStatus } = require('./webapp/index');
 
 dotenv.config();
 const app = express();
@@ -38,7 +39,6 @@ app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'webapp', 'public')));
 
 // Include route handlers from webapp/index.js
-const { createInvoice, checkInvoiceStatus } = require('./webapp/index');
 const { postToYouTubeChat, getLiveChatId } = require('./chatbot/index');
 
 app.use(cors());
@@ -63,14 +63,32 @@ app.post('/send-message', async (req, res) => {
     console.log('Lightning Address:', lightningAddress);
 
     try {
-        //  const invoice = await createInvoice(amount, message, lightsparkClient);
-        // use the creator lightningAddress to create an invoice
-        // that can be paid to the specific creator's wallet. 
-        const invoice = await createTestModeInvoice(amount, message, lightningAddress);
+        const invoice = await createInvoice(amount, `${message}${lightningAddress ? ` | LN:${lightningAddress}` : ''}`);
+
+        // for testing purposes to log the real invoice
+        console.log('Real invoice (not used yet):', invoice);
+
+           //YOUTUBE POSTING
+        // // Get live chat ID
+        // console.log('Getting live chat ID for video:', videoId);
+        // const liveChatId = await getLiveChatId(videoId);
+        // console.log('Live chat ID obtained:', liveChatId);
+
+        // // Prepare and post message to YouTube chat
+        // const fullMessage = `⚡ Superchat (${amount} sats): ${message}`;
+        // console.log('Prepared message:', fullMessage);
+        // console.log('Posting message to YouTube chat...');
+        // await postToYouTubeChat(fullMessage, liveChatId);
+        // console.log('Message posted successfully');
+
+        // addValidMessage(fullMessage);
+
+        //res.json({ invoice, status: 'Invoice created and message posted to YouTube chat' });
+
         res.json({ invoice, status: 'Invoice created' });
     } catch (error) {
         console.error('Error:', error);
-        res.status(500).json({ status: 'Error creating invoice', error: error.message });
+        res.status(500).json({ status: 'Error processing request', error: error.message });
     }
 });
 
@@ -168,6 +186,7 @@ app.post('/generate-short-url', (req, res) => {
     // Start monitoring the live chat
     monitorLiveChat(videoId).catch(error => {
         console.error('Failed to start monitoring:', error);
+        // Don't throw an error here, just log it
     });
     
     res.json({ shortCode });
@@ -182,43 +201,6 @@ app.get('/s/:shortCode', (req, res) => {
         res.status(404).send('Short URL not found');
     }
 });
-
-async function createTestModeInvoice(amount, message, lightningAddress) {
-     // Use creator lightning address for invoice
-     //const memo = `${message} | Creator: ${lightningAddress}`;
-    
-     // In prod, change to use an actual invoice
-     // For demo purposes, we're returning a dummy invoice string for payment due to lightsparks own testnest(Regtest)
-    // return `lnbc${amount}n1p38q3g0sp5zyg3...${Buffer.from(memo).toString('base64')}`;
-    try {
-        const account = await lightsparkClient.getCurrentAccount();
-        if (!account) {
-            throw new Error("Unable to get account");
-        }
-        const nodes = await account.getNodes(lightsparkClient, undefined, [BitcoinNetwork.REGTEST]);
-        if (nodes.entities.length === 0) {
-            throw new Error("No nodes found for this account on REGTEST");
-        }
-        const nodeId = nodes.entities[0].id;
-
-        // Create Lightspark SDK test mode invoice
-        const testInvoice = await lightsparkClient.createTestModeInvoice(
-            nodeId,
-            amount * 1000, // Convert to millisatoshis
-            `${message} | Creator: ${lightningAddress}` // Include creator's address in memo
-        );
-
-        if (!testInvoice) {
-            throw new Error("Unable to create the test invoice.");
-        }
-
-        console.log(`Test invoice created: ${testInvoice}`);
-        return testInvoice;
-    } catch (error) {
-        console.error("Error creating test mode invoice:", error);
-        throw error;
-    }
-}
 
 if (require.main === module) {
   app.listen(port, () => {

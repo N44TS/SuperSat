@@ -45,33 +45,25 @@ async function createInvoice(amount, memo) {
         if (!account) {
             throw new Error("Unable to get account");
         }
-
         const nodes = await account.getNodes(lightsparkClient, undefined, [BitcoinNetwork.REGTEST]);
         if (nodes.entities.length === 0) {
-            throw new Error("No REGTEST nodes found for this account");
+            throw new Error("No nodes found for this account on REGTEST");
         }
-
         const nodeId = nodes.entities[0].id;
-        const amountMsats = amount * 1000; // Convert sats to msats
 
         const invoice = await lightsparkClient.createInvoice(
             nodeId,
-            amountMsats,
+            amount * 1000, // Convert to millisatoshis
             memo,
-            InvoiceType.STANDARD,
-            undefined,
-            BitcoinNetwork.REGTEST
+            InvoiceType.STANDARD
         );
 
-        console.log("Full invoice object:", JSON.stringify(invoice, null, 2));
-
-        if (typeof invoice === 'string') {
-            return invoice; // The invoice is already the encoded payment request
-        } else if (invoice && invoice.data && invoice.data.encoded_payment_request) {
-            return invoice.data.encoded_payment_request;
-        } else {
-            throw new Error("Invalid invoice structure returned");
+        if (!invoice) {
+            throw new Error("Unable to create the invoice.");
         }
+
+        console.log(`Invoice created: ${invoice}`);
+        return invoice;
     } catch (error) {
         console.error("Error creating invoice:", error);
         throw error;
@@ -79,51 +71,64 @@ async function createInvoice(amount, memo) {
 }
 
 app.post('/send-message', async (req, res) => {
-    const { message, amount, videoId } = req.body;
+    const { message, amount, videoId, lightningAddress } = req.body;
     console.log('Received message:', message);
     console.log('Amount:', amount);
     console.log('Video ID:', videoId);
+    console.log('Lightning Address:', lightningAddress);
 
     try {
-        const invoice = await createInvoice(amount, message);
-        res.json({ invoice, status: 'Invoice created' });
+        // use the creator lightningAddress to create an invoice
+        // that can be paid to the specific creator's wallet. 
+        const invoice = await createInvoice(amount, `${message}${lightningAddress ? ` | LN:${lightningAddress}` : ''}`);
+
+        // for testing purposes to log the real invoice
+        console.log('Real invoice (not used yet):', invoice);
+
+        // Get live chat ID
+        console.log('Getting live chat ID for video:', videoId);
+        const liveChatId = await getLiveChatId(videoId);
+        console.log('Live chat ID obtained:', liveChatId);
+
+        // Prepare and post message to YouTube chat
+        const fullMessage = `⚡ Superchat (${amount} sats): ${message}`;
+        console.log('Prepared message:', fullMessage);
+        console.log('Posting message to YouTube chat...');
+        await postToYouTubeChat(fullMessage, liveChatId);
+        console.log('Message posted successfully');
+
+        addValidMessage(fullMessage);
+
+        res.json({ invoice, status: 'Invoice created and message posted to YouTube chat' });
     } catch (error) {
         console.error('Error:', error);
-        res.status(500).json({ status: 'Error creating invoice' });
+        res.status(500).json({ status: 'Error processing request', error: error.message });
     }
 });
 
-async function checkInvoiceStatus(invoice) {
+async function checkInvoiceStatus(invoice, lightsparkClient) {
     try {
         const account = await lightsparkClient.getCurrentAccount();
         if (!account) {
             throw new Error("Unable to get account");
         }
 
-        console.log("Attempting to use REGTEST...");
         const nodes = await account.getNodes(lightsparkClient, undefined, [BitcoinNetwork.REGTEST]);
-        
         if (nodes.entities.length === 0) {
             throw new Error("No nodes found for this account on REGTEST");
         }
 
         const nodeId = nodes.entities[0].id;
 
-        const invoiceData = await lightsparkClient.executeRawQuery(`
-            query GetInvoice($invoice: String!, $nodeId: ID!) {
-                invoice(encoded_payment_request: $invoice, node_id: $nodeId) {
-                    status
-                }
-            }
-        `, {
-            invoice: invoice,
-            nodeId: nodeId,
-        });
+        const invoiceData = await lightsparkClient.getInvoice(nodeId, invoice);
 
-        console.log("Invoice data:", JSON.stringify(invoiceData, null, 2));
+        console.log("Raw invoice data:", JSON.stringify(invoiceData, null, 2));
 
-        if (invoiceData && invoiceData.invoice) {
-            return { paid: invoiceData.invoice.status === 'PAID', expired: invoiceData.invoice.status === 'EXPIRED' };
+        if (invoiceData) {
+            return { 
+                paid: invoiceData.status === 'PAID', 
+                expired: invoiceData.status === 'EXPIRED' 
+            };
         } else {
             console.warn("Invoice not found or invalid response structure");
             return { paid: false, expired: false };
@@ -136,7 +141,7 @@ async function checkInvoiceStatus(invoice) {
 
 app.get('/check-invoice/:invoice', async (req, res) => {
     try {
-        const status = await checkInvoiceStatus(req.params.invoice);
+        const status = await checkInvoiceStatus(req.params.invoice, lightsparkClient);
         res.json(status);
     } catch (error) {
         console.error('Error checking invoice status:', error);

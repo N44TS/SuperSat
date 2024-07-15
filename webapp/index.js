@@ -99,7 +99,20 @@ app.post('/send-message', async (req, res) => {
 
         addValidMessage(fullMessage);
 
-        res.json({ invoice, status: 'Invoice created and message posted to YouTube chat' });
+        // Process the payment before checking the invoice status
+        console.log('Processing payment...');
+        const paymentResponse = await processPayment(invoice, amount);
+        console.log('Payment processed:', paymentResponse);
+
+        // Check the invoice status after processing the payment
+        const invoiceStatus = await checkInvoiceStatus(invoice, lightsparkClient);
+        console.log('Invoice status:', invoiceStatus);
+
+        if (invoiceStatus.paid) {
+            res.json({ invoice, status: 'Invoice paid and message posted to YouTube chat' });
+        } else {
+            res.status(500).json({ status: 'Error processing request', error: 'Invoice not paid' });
+        }
     } catch (error) {
         console.error('Error:', error);
         res.status(500).json({ status: 'Error processing request', error: error.message });
@@ -108,43 +121,50 @@ app.post('/send-message', async (req, res) => {
 
 async function checkInvoiceStatus(invoice, lightsparkClient) {
     try {
-        const account = await lightsparkClient.getCurrentAccount();
-        if (!account) {
-            throw new Error("Unable to get account");
-        }
-
-        const nodes = await account.getNodes(lightsparkClient, undefined, [BitcoinNetwork.REGTEST]);
-        if (nodes.entities.length === 0) {
-            throw new Error("No nodes found for this account on REGTEST");
-        }
-
-        const nodeId = nodes.entities[0].id;
-
-        const invoiceData = await lightsparkClient.executeRawQuery(`
-            query GetInvoice($invoice: String!, $nodeId: ID!) {
-                entity(id: $nodeId) {
-                    ... on LightsparkNode {
-                        invoice(encodedPaymentRequest: $invoice) {
-                            status
+        console.log("Checking invoice status for:", invoice);
+        const response = await lightsparkClient.executeRawQuery(`
+            query GetInvoice($invoice: String!) {
+                decoded_payment_request(encoded_payment_request: $invoice) {
+                    __typename
+                    ... on Invoice {
+                        status
+                        amount {
+                            original_value
+                            original_unit
+                        }
+                        paid_amount {
+                            original_value
+                            original_unit
                         }
                     }
                 }
             }
         `, {
             invoice: invoice,
-            nodeId: nodeId,
         });
 
-        console.log("Full invoice data response:", JSON.stringify(invoiceData, null, 2));
+        console.log("Full invoice data response:", JSON.stringify(response, null, 2));
 
-        if (invoiceData && invoiceData.entity && invoiceData.entity.invoice) {
-            const status = invoiceData.entity.invoice.status;
-            return {
-                paid: status === 'PAID',
-                expired: status === 'EXPIRED',
-            };
+        if (response && response.data && response.data.decoded_payment_request) {
+            const decodedRequest = response.data.decoded_payment_request;
+            if (decodedRequest.__typename === 'Invoice') {
+                const status = decodedRequest.status;
+                const amount = decodedRequest.amount?.original_value;
+                const paidAmount = decodedRequest.paid_amount?.original_value;
+                console.log(`Invoice status: ${status}, Amount: ${amount}, Paid Amount: ${paidAmount}`);
+                return {
+                    paid: status === 'PAID' || (paidAmount && paidAmount >= amount),
+                    expired: status === 'EXPIRED',
+                    status: status,
+                    amount: amount,
+                    paidAmount: paidAmount
+                };
+            } else {
+                console.error("Unexpected decoded_payment_request type:", decodedRequest.__typename);
+                return { paid: false, expired: false, error: "Unexpected decoded_payment_request type" };
+            }
         } else {
-            console.error("Unexpected response structure:", invoiceData);
+            console.error("Unexpected response structure:", response);
             return { paid: false, expired: false, error: "Unexpected response structure" };
         }
     } catch (error) {

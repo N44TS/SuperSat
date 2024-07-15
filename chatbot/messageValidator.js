@@ -1,10 +1,25 @@
-const validMessages = new Set();
+const fs = require('fs');
+const path = require('path');
+
+const validMessagesFile = path.join(__dirname, 'validMessages.json');
+
+// Load valid messages from file on startup
+let validMessages = new Set();
+if (fs.existsSync(validMessagesFile)) {
+    const validMessagesArray = JSON.parse(fs.readFileSync(validMessagesFile, 'utf8'));
+    validMessages = new Set(validMessagesArray);
+}
 
 function addValidMessage(message) {
     validMessages.add(message);
+    // Save the updated valid messages to file
+    fs.writeFileSync(validMessagesFile, JSON.stringify(Array.from(validMessages)), 'utf8');
+    
     // Remove the message after 10 minutes
     setTimeout(() => {
         validMessages.delete(message);
+        // Save the updated valid messages to file
+        fs.writeFileSync(validMessagesFile, JSON.stringify(Array.from(validMessages)), 'utf8');
     }, 10 * 60 * 1000);
 }
 

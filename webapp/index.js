@@ -5,9 +5,9 @@ const axios = require('axios');
 const path = require('path');
 const { AccountTokenAuthProvider, LightsparkClient, InvoiceType, BitcoinNetwork } = require("@lightsparkdev/lightspark-sdk");
 
-// Load .env file from the root directory
-// dotenv.config({ path: join(__dirname, '..', '.env') });
 dotenv.config();
+
+const nodeId = process.env.LIGHTSPARK_NODE_ID;
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -21,10 +21,6 @@ const lightsparkClient = new LightsparkClient(
 
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
-
-// app.get('/', (req, res) => {
-//     res.sendFile(path.join(__dirname, 'public', 'creator.html'));
-// });
 
 app.get('/creator', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'creator.html'));
@@ -41,32 +37,39 @@ app.get('/superchat', (req, res) => {
 
 async function createInvoice(amount, memo) {
     try {
-        const account = await lightsparkClient.getCurrentAccount();
-        if (!account) {
-            throw new Error("Unable to get account");
-        }
-        const nodes = await account.getNodes(lightsparkClient, undefined, [BitcoinNetwork.REGTEST]);
-        if (nodes.entities.length === 0) {
-            throw new Error("No nodes found for this account on REGTEST");
-        }
-        const nodeId = nodes.entities[0].id;
-
-        const invoice = await lightsparkClient.createInvoice(
+        const testInvoice = await lightsparkClient.createTestModeInvoice(
             nodeId,
             amount * 1000, // Convert to millisatoshis
-            memo,
-            InvoiceType.STANDARD
+            memo
         );
-
-        if (!invoice) {
-            throw new Error("Unable to create the invoice.");
+        if (!testInvoice) {
+            throw new Error("Unable to create the test invoice.");
         }
-
-        console.log(`Invoice created: ${invoice}`);
-        return invoice;
+        console.log(`Invoice created: ${testInvoice}`);
+        return testInvoice;
     } catch (error) {
         console.error("Error creating invoice:", error);
         throw error;
+    }
+}
+
+async function checkInvoiceStatus(invoice) {
+    try {
+        console.log("Checking invoice status for:", invoice);
+        const decodedInvoice = await lightsparkClient.decodeInvoice(invoice);
+        const paymentHash = decodedInvoice.paymentHash;
+        const paymentStatus = await lightsparkClient.outgoingPaymentsForPaymentHash(paymentHash);
+        
+        console.log("Payment status:", JSON.stringify(paymentStatus, null, 2));
+        
+        if (paymentStatus.length > 0 && paymentStatus[0].status === 'SUCCESS') {
+            return { paid: true, status: 'PAID' };
+        } else {
+            return { paid: false, status: 'UNPAID' };
+        }
+    } catch (error) {
+        console.error("Error checking invoice status:", error);
+        return { paid: false, expired: false, error: error.message };
     }
 }
 
@@ -78,12 +81,8 @@ app.post('/send-message', async (req, res) => {
     console.log('Lightning Address:', lightningAddress);
 
     try {
-        // use the creator lightningAddress to create an invoice
-        // that can be paid to the specific creator's wallet. 
         const invoice = await createInvoice(amount, `${message}${lightningAddress ? ` | LN:${lightningAddress}` : ''}`);
-
-        // for testing purposes to log the real invoice
-        console.log('Real invoice (not used yet):', invoice);
+        console.log('Real invoice:', invoice);
 
         // Get live chat ID
         console.log('Getting live chat ID for video:', videoId);
@@ -99,13 +98,8 @@ app.post('/send-message', async (req, res) => {
 
         addValidMessage(fullMessage);
 
-        // Process the payment before checking the invoice status
-        console.log('Processing payment...');
-        const paymentResponse = await processPayment(invoice, amount);
-        console.log('Payment processed:', paymentResponse);
-
-        // Check the invoice status after processing the payment
-        const invoiceStatus = await checkInvoiceStatus(invoice, lightsparkClient);
+        // Check the invoice status
+        const invoiceStatus = await checkInvoiceStatus(invoice);
         console.log('Invoice status:', invoiceStatus);
 
         if (invoiceStatus.paid) {
@@ -119,63 +113,9 @@ app.post('/send-message', async (req, res) => {
     }
 });
 
-async function checkInvoiceStatus(invoice, lightsparkClient) {
-    try {
-        console.log("Checking invoice status for:", invoice);
-        const response = await lightsparkClient.executeRawQuery(`
-            query GetInvoice($invoice: String!) {
-                decoded_payment_request(encoded_payment_request: $invoice) {
-                    __typename
-                    ... on Invoice {
-                        status
-                        amount {
-                            original_value
-                            original_unit
-                        }
-                        paid_amount {
-                            original_value
-                            original_unit
-                        }
-                    }
-                }
-            }
-        `, {
-            invoice: invoice,
-        });
-
-        console.log("Full invoice data response:", JSON.stringify(response, null, 2));
-
-        if (response && response.data && response.data.decoded_payment_request) {
-            const decodedRequest = response.data.decoded_payment_request;
-            if (decodedRequest.__typename === 'Invoice') {
-                const status = decodedRequest.status;
-                const amount = decodedRequest.amount?.original_value;
-                const paidAmount = decodedRequest.paid_amount?.original_value;
-                console.log(`Invoice status: ${status}, Amount: ${amount}, Paid Amount: ${paidAmount}`);
-                return {
-                    paid: status === 'PAID' || (paidAmount && paidAmount >= amount),
-                    expired: status === 'EXPIRED',
-                    status: status,
-                    amount: amount,
-                    paidAmount: paidAmount
-                };
-            } else {
-                console.error("Unexpected decoded_payment_request type:", decodedRequest.__typename);
-                return { paid: false, expired: false, error: "Unexpected decoded_payment_request type" };
-            }
-        } else {
-            console.error("Unexpected response structure:", response);
-            return { paid: false, expired: false, error: "Unexpected response structure" };
-        }
-    } catch (error) {
-        console.error("Error checking invoice status:", error);
-        return { paid: false, expired: false, error: error.message };
-    }
-}
-
 app.get('/check-invoice/:invoice', async (req, res) => {
     try {
-        const status = await checkInvoiceStatus(req.params.invoice, lightsparkClient);
+        const status = await checkInvoiceStatus(req.params.invoice);
         res.json(status);
     } catch (error) {
         console.error('Error checking invoice status:', error);
@@ -208,7 +148,6 @@ app.post('/simulate-payment', async (req, res) => {
     }
 });
 
-// At the end of server.js
 if (require.main === module) {
   app.listen(port, () => {
     console.log(`Server running on port ${port}`);
@@ -218,10 +157,8 @@ if (require.main === module) {
   });
 }
 
-module.exports = app;
-
-// Add these lines at the end of the file
 module.exports = {
     createInvoice,
-    checkInvoiceStatus
+    checkInvoiceStatus,
+    app
 };

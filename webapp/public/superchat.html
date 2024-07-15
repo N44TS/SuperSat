@@ -273,7 +273,7 @@
 
         function checkPaymentStatus(invoice) {
             let checkCount = 0;
-            const maxChecks = 60;
+            const maxChecks = 30; // Adjust as needed
 
             const checkStatus = () => {
                 if (checkCount >= maxChecks) {
@@ -282,22 +282,23 @@
                 }
 
                 fetch(`/check-invoice/${invoice}`)
-                    .then(response => response.json())
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
                     .then(data => {
-                        console.log('Invoice details:', invoice);
                         if (data.paid) {
                             showSuccessMessage();
-                        } else if (data.expired) {
-                            document.getElementById('payment-status').textContent = 'Invoice expired. Please try again.';
-                            document.getElementById('qrcode').style.display = 'none';
                         } else {
                             checkCount++;
-                            setTimeout(checkStatus, 5000);
+                            setTimeout(checkStatus, 10000); // Check every 10 seconds
                         }
                     })
                     .catch(error => {
                         console.error('Error checking payment status:', error);
-                        document.getElementById('payment-status').textContent = 'Error checking payment status';
+                        document.getElementById('payment-status').textContent = 'Error checking payment status. Please refresh and try again.';
                     });
             };
 

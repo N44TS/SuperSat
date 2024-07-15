@@ -9,7 +9,7 @@ const { google } = require('googleapis');
 const cors = require('cors');
 const { monitorLiveChat } = require('./chatbot/messageMonitor');
 const { addValidMessage, isValidMessage, isSuperchatFormat } = require('./chatbot/messageValidator');
-const { createInvoice, checkInvoiceStatus } = require('./webapp/index');
+const { createInvoice, checkInvoiceStatus, app: webappApp } = require('./webapp/index');
 
 dotenv.config();
 const app = express();
@@ -23,6 +23,8 @@ const lightsparkClient = new LightsparkClient(
         process.env.LIGHTSPARK_API_TOKEN_SECRET
     )
 );
+
+const nodeId = process.env.LIGHTSPARK_NODE_ID;
 
 const youtube = google.youtube('v3');
 const oauth2Client = new google.auth.OAuth2(
@@ -97,7 +99,15 @@ app.post('/send-message', async (req, res) => {
 
 app.get('/check-invoice/:invoice', async (req, res) => {
     try {
-        const status = await checkInvoiceStatus(req.params.invoice, lightsparkClient);
+        const invoice = req.params.invoice;
+        const decodedInvoice = await lightsparkClient.decodeInvoice(invoice);
+        const paymentHash = decodedInvoice.paymentHash;
+        const outgoingPayments = await lightsparkClient.outgoingPaymentsForPaymentHash(paymentHash);
+        
+        const status = outgoingPayments.length > 0 && outgoingPayments[0].status === 'SUCCESS'
+            ? { paid: true }
+            : { paid: false };
+        
         res.json(status);
     } catch (error) {
         console.error('Error checking invoice status:', error);
@@ -110,23 +120,29 @@ app.post('/simulate-payment', async (req, res) => {
     console.log('Payment simulation request received:', { invoice, message, amount, videoId });
     
     try {
-        console.log('Getting live chat ID for video:', videoId);
+        await lightsparkClient.loadNodeSigningKey(nodeId, {
+            password: process.env.TEST_NODE_PASSWORD,
+        });
+        console.log("Node signing key loaded.");
+
+        // Convert amount to millisatoshis (multiply by 1000) and ensure it's a number
+        const amountMsats = Number(amount) * 1000;
+
+        const payment = await lightsparkClient.payInvoice(nodeId, invoice, amountMsats, 60);
+        if (!payment) {
+            throw new Error("Unable to pay invoice.");
+        }
+        console.log("Payment done with ID:", payment.id);
+
         const liveChatId = await getLiveChatId(videoId);
-        console.log('Live chat ID obtained:', liveChatId);
-
         const fullMessage = `⚡ Superchat (${amount} sats): ${message}`;
-        console.log('Prepared message:', fullMessage);
-
-        console.log('Posting message to YouTube chat...');
         await postToYouTubeChat(fullMessage, liveChatId);
-        console.log('Message posted successfully');
-
         addValidMessage(fullMessage);
 
-        res.json({ success: true, message: 'Payment simulated and message posted to YouTube chat' });
+        res.json({ success: true, message: 'Payment confirmed and message posted to YouTube chat' });
     } catch (error) {
         console.error('Error in simulate-payment:', error);
-        res.status(500).json({ success: false, message: 'Error processing payment', error: error.message });
+        res.status(500).json({ success: false, message: 'Error processing payment', error: error.toString() });
     }
 });
 

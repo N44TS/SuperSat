@@ -120,14 +120,27 @@ async function checkInvoiceStatus(invoice, lightsparkClient) {
 
         const nodeId = nodes.entities[0].id;
 
-        const invoiceData = await lightsparkClient.getInvoice(nodeId, invoice);
+        const invoiceData = await lightsparkClient.executeRawQuery(`
+            query GetInvoice($invoice: String!, $nodeId: ID!) {
+                entity(id: $nodeId) {
+                    ... on LightsparkNode {
+                        invoice(encodedPaymentRequest: $invoice) {
+                            status
+                        }
+                    }
+                }
+            }
+        `, {
+            invoice: invoice,
+            nodeId: nodeId,
+        });
 
         console.log("Raw invoice data:", JSON.stringify(invoiceData, null, 2));
 
-        if (invoiceData) {
+        if (invoiceData && invoiceData.data && invoiceData.data.entity && invoiceData.data.entity.invoice) {
             return { 
-                paid: invoiceData.status === 'PAID', 
-                expired: invoiceData.status === 'EXPIRED' 
+                paid: invoiceData.data.entity.invoice.status === 'PAID', 
+                expired: invoiceData.data.entity.invoice.status === 'EXPIRED' 
             };
         } else {
             console.warn("Invoice not found or invalid response structure");

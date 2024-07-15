@@ -8,7 +8,7 @@ const { AccountTokenAuthProvider, LightsparkClient, InvoiceType, BitcoinNetwork 
 const { google } = require('googleapis');
 const cors = require('cors');
 const { monitorLiveChat } = require('./chatbot/messageMonitor');
-const { addValidMessage } = require('./chatbot/messageValidator');
+const { addValidMessage, isValidMessage, isSuperchatFormat } = require('./chatbot/messageValidator');
 const { createInvoice, checkInvoiceStatus } = require('./webapp/index');
 
 dotenv.config();
@@ -68,7 +68,7 @@ app.post('/send-message', async (req, res) => {
         // for testing purposes to log the real invoice
         console.log('Real invoice (not used yet):', invoice);
 
-           //YOUTUBE POSTING
+          //YOUTUBE POSTING
         // // Get live chat ID
         // console.log('Getting live chat ID for video:', videoId);
         // const liveChatId = await getLiveChatId(videoId);
@@ -84,6 +84,9 @@ app.post('/send-message', async (req, res) => {
         // addValidMessage(fullMessage);
 
         //res.json({ invoice, status: 'Invoice created and message posted to YouTube chat' });
+
+        const fullMessage = `⚡ Superchat (${amount} sats): ${message}`;
+        addValidMessage(fullMessage);
 
         res.json({ invoice, status: 'Invoice created' });
     } catch (error) {

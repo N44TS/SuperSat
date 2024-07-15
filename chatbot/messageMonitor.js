@@ -1,5 +1,5 @@
 const { youtube, oauth2Client, getLiveChatId, deleteMessage } = require('./index');
-const { isValidMessage, isSuperchatFormat } = require('./messageValidator');
+const { isValidMessage, isSuperchatFormat, addValidMessage } = require('./messageValidator');
 
 let monitoringIntervals = new Map();
 
@@ -57,4 +57,4 @@ async function monitorLiveChat(videoId) {
     }
 }
 
-module.exports = { monitorLiveChat };
+module.exports = { monitorLiveChat, addValidMessage };

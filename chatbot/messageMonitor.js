@@ -1,7 +1,8 @@
 const { youtube, oauth2Client, getLiveChatId, deleteMessage } = require('./index');
-const { isValidMessage, isSuperchatFormat, addValidMessage } = require('./messageValidator');
+const { isValidMessage, isSuperchatFormat } = require('./messageValidator');
 
 let monitoringIntervals = new Map();
+let lastCheckedMessageId = new Map();
 
 async function monitorLiveChat(videoId) {
     if (monitoringIntervals.has(videoId)) {
@@ -18,8 +19,11 @@ async function monitorLiveChat(videoId) {
                 const response = await youtube.liveChatMessages.list({
                     auth: oauth2Client,
                     liveChatId: liveChatId,
-                    part: 'snippet',
+                    part: 'snippet,id',
+                    pageToken: lastCheckedMessageId.get(videoId)
                 });
+
+                lastCheckedMessageId.set(videoId, response.data.nextPageToken);
 
                 for (const message of response.data.items) {
                     const messageText = message.snippet.textMessageDetails.messageText;
@@ -39,6 +43,7 @@ async function monitorLiveChat(videoId) {
                     console.log('Live stream ended or bot removed. Stopping monitor.');
                     clearInterval(intervalId);
                     monitoringIntervals.delete(videoId);
+                    lastCheckedMessageId.delete(videoId);
                 }
             }
         }, 10000); // Check every 10 seconds
@@ -49,6 +54,7 @@ async function monitorLiveChat(videoId) {
         setTimeout(() => {
             clearInterval(intervalId);
             monitoringIntervals.delete(videoId);
+            lastCheckedMessageId.delete(videoId);
             console.log(`Monitoring stopped for video ${videoId} after 6 hours`);
         }, 6 * 60 * 60 * 1000);
 
@@ -57,4 +63,4 @@ async function monitorLiveChat(videoId) {
     }
 }
 
-module.exports = { monitorLiveChat, addValidMessage };
+module.exports = { monitorLiveChat };

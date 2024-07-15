@@ -135,16 +135,17 @@ async function checkInvoiceStatus(invoice, lightsparkClient) {
             nodeId: nodeId,
         });
 
-        console.log("Raw invoice data:", JSON.stringify(invoiceData, null, 2));
+        console.log("Full invoice data response:", JSON.stringify(invoiceData, null, 2));
 
-        if (invoiceData && invoiceData.data && invoiceData.data.entity && invoiceData.data.entity.invoice) {
-            return { 
-                paid: invoiceData.data.entity.invoice.status === 'PAID', 
-                expired: invoiceData.data.entity.invoice.status === 'EXPIRED' 
+        if (invoiceData && invoiceData.entity && invoiceData.entity.invoice) {
+            const status = invoiceData.entity.invoice.status;
+            return {
+                paid: status === 'PAID',
+                expired: status === 'EXPIRED',
             };
         } else {
-            console.warn("Invoice not found or invalid response structure");
-            return { paid: false, expired: false };
+            console.error("Unexpected response structure:", invoiceData);
+            return { paid: false, expired: false, error: "Unexpected response structure" };
         }
     } catch (error) {
         console.error("Error checking invoice status:", error);

@@ -159,7 +159,7 @@
         border-radius: 20px;
         box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
         background-color: #efecec;
-        background-image: linear-gradient(315deg, #eae6e7 0%, #ffd1dc 74%);
+        background-image: linear-gradient(45deg, #a71d31 0%, #3f0d12 76%);
         color: #5c5c5c;
     }
     
@@ -167,10 +167,13 @@
         margin-top: 1.25rem;
         padding: 0rem 1.5rem;
         font-size: 0.9rem;
+        color: silver;
     }
 
     .form-container h1 {
         font-size: 2.5rem;
+        padding: 1.5rem;
+        color:  #a64654;
     }
     
     input {
@@ -179,16 +182,15 @@
         appearance: none;
         outline: 0;
         border: 1px solid rgba(164, 13, 13, 0.4);
-        background-color: rgba(255, 255, 255, 0.2);
+        background-color: #f7f7f7;
         width: 80%;
         border-radius: 3px;
         padding: 10px 15px;
         margin: 25px auto 10px auto;
         display: block;
         text-align: center;
-        font-size: 18px;
-        color: #a71d31;
-        -webkit-text-fill-color: #a71d31;
+        font-size: 16px;
+        
         transition-duration: 0.25s;
         font-weight: 300;
         max-width: 80%; 
@@ -306,6 +308,7 @@
         width: 45%;
         background-color: rgba(255, 255, 255, 0.1);
         padding: 1rem;
+        padding-right: 0;
         border-radius: 10px;
         backdrop-filter: blur(5px);
     }
@@ -333,7 +336,7 @@
         }
     }
 
-    .instructions {
+    /* .instructions {
         background-color: rgba(255, 255, 255, 0.3);
         border-radius: 10px;
         padding: 1rem;
@@ -352,7 +355,7 @@
 
     .instructions li {
         margin-bottom: 0.5rem;
-    }
+    } */
 
 </style>
 </head>
@@ -368,7 +371,7 @@
                     <div class="features">
                         <div class="feature">
                             <h4>Instant Payments</h4>
-                            <p>Receive payments in real-time during your live streams using the Lightning Network.</p>
+                            <p>Receive payments and superchats in real-time during your live streams using the Lightning Network.</p>
                         </div>
                         <div class="feature">
                             <h4>Easy Setup</h4>
@@ -380,15 +383,13 @@
             
             <div class="right-column">
                 <div class="form-container">                            
-                    <div class="instructions">
-                        <h4>Important Setup Steps:</h4>
-                        <ol>
-                            <li>Enter your YouTube Live URL and Lightning address below.</li>
-                            <li>Generate and share the SuperSat link with your viewers.</li>
-                        </ol>
-                    </div>
-                    <h1>Create your supersat link</h1>
-                    <p>Create a url to pin in your live chat</p>
+                    <!-- <div class="instructions">
+                        <h4>Setup Steps:</h4>
+                            <p>Go live. Then enter your YouTube Live URL and Lightning address below.</p>
+                            <p>Generate and share the SuperSat link with your viewers. I recommend pinning it in your live chat</p>
+                    </div> -->
+                    <h1>Create your superchat link</h1>
+                    <p>Generate a unique url and pin it in your live chat</p>
                     <input type="text" id="video-url" placeholder="Enter your YouTube Live URL" />
                     <input type="text" id="lightning-address" placeholder="Enter your Lightning address" />
                     <button class="submit-button" onclick="generateSuperchatUrl()">Generate SuperSat Link</button>

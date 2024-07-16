@@ -60,8 +60,12 @@ async function checkLiveChatMessages(videoId, liveChatId) {
 
 async function processMessage(message, liveChatId, videoId) {
     const messageText = message.snippet.textMessageDetails.messageText;
+    const messageId = message.id;
+
+    console.log('Processing message:', messageText);
+
     if (isSuperchatFormat(messageText)) {
-        const messageId = message.id;
+        console.log('Message is in superchat format:', messageText);
         // Check if this superchat was previously validated
         if (validSuperchats[videoId] && validSuperchats[videoId].includes(messageId)) {
             console.log('Previously validated superchat:', messageText);
@@ -80,6 +84,11 @@ async function processMessage(message, liveChatId, videoId) {
             await deleteMessage(messageId, liveChatId);
             console.log('Fake superchat deleted');
         }
+    } else if (messageText.startsWith('⚡')) {
+        // Invalid superchat
+        console.log('Fake superchat detected:', messageText);
+        await deleteMessage(messageId, liveChatId);
+        console.log('Fake superchat deleted');
     }
 }
 

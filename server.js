@@ -4,10 +4,11 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const axios = require('axios');
 const path = require('path');
+const fs = require('fs');
 const { AccountTokenAuthProvider, LightsparkClient, InvoiceType, BitcoinNetwork } = require("@lightsparkdev/lightspark-sdk");
 const { google } = require('googleapis');
 const cors = require('cors');
-const { monitorLiveChat } = require('./chatbot/messageMonitor');
+const { monitorLiveChat, processMessage } = require('./chatbot/messageMonitor');
 const { addValidMessage, isValidMessage, isSuperchatFormat } = require('./chatbot/messageValidator');
 const { createInvoice, checkInvoiceStatus, app: webappApp } = require('./webapp/index');
 
@@ -103,6 +104,14 @@ app.get('/check-invoice/:invoice', async (req, res) => {
     }
 });
 
+const validSuperchatsFile = path.join(__dirname, 'chatbot', 'validSuperchats.json');
+
+// Load valid superchats from file
+let validSuperchats = {};
+if (fs.existsSync(validSuperchatsFile)) {
+    validSuperchats = JSON.parse(fs.readFileSync(validSuperchatsFile, 'utf8'));
+}
+
 app.post('/simulate-payment', async (req, res) => {
     const { invoice, message, amount, videoId } = req.body;
     console.log('Payment simulation request received:', { invoice, message, amount, videoId });
@@ -127,6 +136,14 @@ app.post('/simulate-payment', async (req, res) => {
         await postToYouTubeChat(fullMessage, liveChatId);
         addValidMessage(fullMessage);
 
+        // Add the message ID to validSuperchats
+        if (!validSuperchats[videoId]) {
+            validSuperchats[videoId] = [];
+        }
+        validSuperchats[videoId].push(payment.id);
+        fs.writeFileSync(validSuperchatsFile, JSON.stringify(validSuperchats, null, 2));
+
+        // Update the payment status immediately
         res.json({ success: true, message: 'Payment confirmed and message posted to YouTube chat' });
     } catch (error) {
         console.error('Error in simulate-payment:', error);
@@ -209,17 +226,15 @@ app.get('/s/:shortCode', (req, res) => {
     }
 });
 
-if (require.main === module) {
-  app.listen(port, () => {
+app.listen(port, () => {
     console.log(`Server running on port ${port}`);
-  }).on('error', (err) => {
+}).on('error', (err) => {
     if (err.code === 'EADDRINUSE') {
-      console.error(`Port ${port} is already in use. Try a different port.`);
+        console.error(`Port ${port} is already in use. Try a different port.`);
     } else {
-      console.error('An error occurred:', err);
+        console.error('An error occurred:', err);
     }
     process.exit(1);
-  });
-}
+});
 
 module.exports = app;

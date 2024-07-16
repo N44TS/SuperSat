@@ -71,10 +71,12 @@ app.post('/send-message', async (req, res) => {
     console.log('Lightning Address:', lightningAddress);
 
     try {
-        const invoice = await createInvoice(amount, `${message}${lightningAddress ? ` | LN:${lightningAddress}` : ''}`);
+        // Check that video is actually live rn
+        const liveChatId = await getLiveChatId(videoId);
+        console.log('Live chat ID obtained:', liveChatId);
 
-        // for testing purposes to log the real invoice
-        console.log('Real invoice (not used yet):', invoice);
+        const invoice = await createInvoice(amount, `${message}${lightningAddress ? ` | LN:${lightningAddress}` : ''}`);
+        console.log('Real invoice:', invoice);
 
         const fullMessage = `⚡⚡ 𝗦𝗨𝗣𝗘𝗥𝗖𝗛𝗔𝗧 [${amount} 𝗦𝗔𝗧𝗦]: ${message.toUpperCase()}`;
         addValidMessage(fullMessage);
@@ -200,20 +202,30 @@ function generateShortCode() {
     return Math.random().toString(36).substr(2, 6);
 }
 
-app.post('/generate-short-url', (req, res) => {
+app.post('/generate-short-url', async (req, res) => {
     const { videoId, lightningAddress } = req.body;
     console.log('Received request:', { videoId, lightningAddress });
-    const shortCode = generateShortCode();
-    shortUrls.set(shortCode, { videoId, lightningAddress });
-    console.log('Generated short code:', shortCode);
-    
-    // Start monitoring the live chat
-    monitorLiveChat(videoId).catch(error => {
-        console.error('Failed to start monitoring:', error);
-        // Don't throw an error here, just log it
-    });
-    
-    res.json({ shortCode });
+
+    try {
+        // Check that video is actually live
+        const liveChatId = await getLiveChatId(videoId);
+        console.log('Live chat ID obtained:', liveChatId);
+
+        const shortCode = generateShortCode();
+        shortUrls.set(shortCode, { videoId, lightningAddress });
+        console.log('Generated short code:', shortCode);
+
+        // Start monitoring the live chat
+        monitorLiveChat(videoId).catch(error => {
+            console.error('Failed to start monitoring:', error);
+            // Don't throw an error here, just log it
+        });
+
+        res.json({ shortCode });
+    } catch (error) {
+        console.error('Error generating short URL:', error);
+        res.status(500).json({ error: error.message });
+    }
 });
 
 app.get('/s/:shortCode', (req, res) => {

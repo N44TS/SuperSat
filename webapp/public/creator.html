@@ -372,7 +372,7 @@
                         </div>
                         <div class="feature">
                             <h4>Easy Setup</h4>
-                            <p>Input your YouTube Live URL and Lightning Address, then share the generated link with your viewers on your live.</p>
+                            <p>Input your YouTube Live URL and Lightning address, then share the generated link with your viewers on your live.</p>
                         </div>
                     </div>
                 </div>
@@ -414,19 +414,22 @@
                     },
                     body: JSON.stringify({ videoId, lightningAddress }),
                 })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    return response.json();
-                })
+                .then(response => response.json())
                 .then(data => {
-                    const superchatUrl = `${window.location.origin}/s/${data.shortCode}`;
-                    document.getElementById('result').innerHTML = `
-                        <strong>Your Superchat URL:</strong><br>
-                        Pin this in your YouTube Live chat:<br>
-                        <a href="${superchatUrl}" target="_blank">${superchatUrl}</a>
-                    `;
+                    if (data.error) {
+                        if (data.error === 'No live stream found for this video ID') {
+                            alert('No live stream found for this video ID. Please check the video ID and try again.');
+                        } else {
+                            alert(data.error); // Show alert with other error messages
+                        }
+                    } else {
+                        const superchatUrl = `${window.location.origin}/s/${data.shortCode}`;
+                        document.getElementById('result').innerHTML = `
+                            <strong>Your Superchat URL:</strong><br>
+                            Pin this in your YouTube Live chat:<br>
+                            <a href="${superchatUrl}" target="_blank">${superchatUrl}</a>
+                        `;
+                    }
                 })
                 .catch(error => {
                     console.error('Error:', error);

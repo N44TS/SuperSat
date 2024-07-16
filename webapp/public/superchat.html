@@ -186,7 +186,7 @@
     <div class="container">
         <div id="superchat-form">
             <h1>⚡ Lightning Superchat</h1>
-            <textarea id="message" placeholder="Enter your Superchat message" rows="4"></textarea>
+            <textarea id="message" placeholder="Enter your Superchat message" rows="4" maxlength="220"></textarea>
             <input type="number" id="amount" placeholder="Amount in sats">
             <button id="send-superchat-button" onclick="sendSuperchat()">Send Superchat</button>
             <div class="loader"></div>
@@ -236,7 +236,13 @@
                 })
                 .then(response => response.json())
                 .then(data => {
-                    if (data.invoice) {
+                    if (data.error) {
+                        if (data.error === 'No live stream found for this video ID') {
+                            alert('No live stream found for this video ID. Please check the video ID and try again.');
+                        } else {
+                            alert(data.error); // Show alert with other error messages
+                        }
+                    } else if (data.invoice) {
                         console.log('Invoice details:', data.invoice);
                         document.getElementById('invoice').textContent = data.invoice;
                         document.getElementById('superchat-form').style.display = 'none';

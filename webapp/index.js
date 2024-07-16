@@ -90,7 +90,7 @@ app.post('/send-message', async (req, res) => {
         console.log('Live chat ID obtained:', liveChatId);
 
         // Prepare and post message to YouTube chat
-        const fullMessage = `⚡ Superchat (${amount} sats): ${message}`;
+        const fullMessage = `⚡⚡ 𝗦𝗨𝗣𝗘𝗥𝗖𝗛𝗔𝗧 [${amount} 𝗦𝗔𝗧𝗦]: ${message.toUpperCase()}`;
         console.log('Prepared message:', fullMessage);
         console.log('Posting message to YouTube chat...');
         await postToYouTubeChat(fullMessage, liveChatId);
@@ -134,7 +134,7 @@ app.post('/simulate-payment', async (req, res) => {
         // Send message to YouTube chat
         try {
             await axios.post(`${process.env.VERCEL_URL || 'http://localhost:3001'}/post-message`, { 
-                message: `⚡ Superchat (${amount} sats): ${message}`,
+                message: `⚡⚡ 𝗦𝗨𝗣𝗘𝗥𝗖𝗛𝗔𝗧 [${amount} 𝗦𝗔𝗧𝗦] ⚡⚡: ${message.toUpperCase()}`,
                 videoId: videoId
             });
             res.json({ success: true, message: 'Payment simulated and message posted to YouTube chat' });

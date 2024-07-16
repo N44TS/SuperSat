@@ -57,6 +57,11 @@ app.get('/chatpopup', (req, res) => {
     res.sendFile(path.join(__dirname, 'webapp', 'public', 'chatpopup.html'));
 });
 
+//FOR TESTING HOW YOUTUBE CHAT LOOKS WITHOUT USING UP CREDITS. CAN DELETE AFTER 
+app.get('/preview', (req, res) => {
+    res.sendFile(path.join(__dirname, 'webapp', 'public', 'superchat_preview.html'));
+});
+
 app.post('/send-message', async (req, res) => {
     const { message, amount, videoId, lightningAddress } = req.body;
     console.log('Received message:', message);
@@ -70,24 +75,7 @@ app.post('/send-message', async (req, res) => {
         // for testing purposes to log the real invoice
         console.log('Real invoice (not used yet):', invoice);
 
-          //YOUTUBE POSTING
-        // // Get live chat ID
-        // console.log('Getting live chat ID for video:', videoId);
-        // const liveChatId = await getLiveChatId(videoId);
-        // console.log('Live chat ID obtained:', liveChatId);
-
-        // // Prepare and post message to YouTube chat
-        // const fullMessage = `⚡ Superchat (${amount} sats): ${message}`;
-        // console.log('Prepared message:', fullMessage);
-        // console.log('Posting message to YouTube chat...');
-        // await postToYouTubeChat(fullMessage, liveChatId);
-        // console.log('Message posted successfully');
-
-        // addValidMessage(fullMessage);
-
-        //res.json({ invoice, status: 'Invoice created and message posted to YouTube chat' });
-
-        const fullMessage = `⚡ Superchat (${amount} sats): ${message}`;
+        const fullMessage = `⚡⚡ 𝗦𝗨𝗣𝗘𝗥𝗖𝗛𝗔𝗧 [${amount} 𝗦𝗔𝗧𝗦]: ${message.toUpperCase()}`;
         addValidMessage(fullMessage);
 
         res.json({ invoice, status: 'Invoice created' });
@@ -135,7 +123,7 @@ app.post('/simulate-payment', async (req, res) => {
         console.log("Payment done with ID:", payment.id);
 
         const liveChatId = await getLiveChatId(videoId);
-        const fullMessage = `⚡ Superchat (${amount} sats): ${message}`;
+        const fullMessage = `⚡⚡ 𝗦𝗨𝗣𝗘𝗥𝗖𝗛𝗔𝗧 [${amount} 𝗦𝗔𝗧𝗦]: ${message.toUpperCase()}`;
         await postToYouTubeChat(fullMessage, liveChatId);
         addValidMessage(fullMessage);
 

@@ -33,11 +33,32 @@ async function monitorLiveChat(videoId) {
         monitoringIntervals.set(videoId, intervalId);
     } catch (error) {
         console.error('Error starting live chat monitor:', error);
+        if (error.message === 'No live stream found for this video ID') {
+            console.log(`No live stream found for video ${videoId}. Skipping monitoring.`);
+        } else {
+            // Handle other errors if needed
+        }
     }
 }
 
 async function checkLiveChatMessages(videoId, liveChatId) {
     try {
+        // Check if the live stream is still active
+        const videoResponse = await youtube.videos.list({
+            auth: oauth2Client,
+            part: 'liveStreamingDetails',
+            id: videoId
+        });
+
+        if (videoResponse.data.items.length === 0 || 
+            !videoResponse.data.items[0].liveStreamingDetails || 
+            !videoResponse.data.items[0].liveStreamingDetails.activeLiveChatId ||
+            videoResponse.data.items[0].liveStreamingDetails.actualEndTime) {
+            console.log('Live stream ended or not found. Stopping monitor.');
+            stopMonitoring(videoId);
+            return;
+        }
+
         // Fetch new messages since the last check
         const response = await youtube.liveChatMessages.list({
             auth: oauth2Client,
@@ -92,15 +113,24 @@ async function processMessage(message, liveChatId, videoId) {
     }
 }
 
+//hopefully just a fallback, just incase to make sure i dont use up all my api quota
 function handleError(error, videoId) {
-    console.error('Error fetching live chat messages:', error);
-    if (error.code === 403) {
-        // Live stream ended or bot removed
-        console.log('Live stream ended or bot removed. Stopping monitor.');
+    console.error('Error fetching live chat messages:', error.message);
+    if (error.code === 404 || error.response?.status === 404 || error.message.includes('liveChatNotFound')) {
+        console.log('Live stream ended. Stopping monitor.');
+    } else {
+        console.log(`Stopping monitor for video ${videoId} due to error:`, error.message);
+    }
+    stopMonitoring(videoId);
+}
+
+function stopMonitoring(videoId) {
+    if (monitoringIntervals.has(videoId)) {
         clearInterval(monitoringIntervals.get(videoId));
         monitoringIntervals.delete(videoId);
         lastCheckedMessageId.delete(videoId);
+        console.log(`Stopped monitoring for video ${videoId}`);
     }
 }
 
-module.exports = { monitorLiveChat };
+module.exports = { monitorLiveChat, stopMonitoring };

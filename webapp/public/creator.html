@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SuperSat ⚡</title>
+    <title>SuperSats</title>
     <style>
     .app {
         text-align: center;
@@ -20,7 +20,7 @@
     body {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
         Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-        background-color: var(--clr-grey-7);
+        background-color: #f7f7f7;
         color: var(--clr-grey-1);
         font-size: 0.875rem;
         background-size: cover;
@@ -90,7 +90,6 @@
     
     .left-column {
         width: 55%;
-        background: url(/src/heartsbg.jpg);
         float: left;
         text-align: center;
         height: 100vh;
@@ -214,9 +213,15 @@
     }
         
     .generated-url p {
-        margin: 0;
-        padding: 0;
-    }
+            margin: 0;
+            padding: 0;
+            color: silver;
+        }
+
+    .generated-url a {
+            text-decoration: underline;
+            color: black;
+        }
         
     .submit-button {
         -webkit-appearance: none;
@@ -244,6 +249,10 @@
         background-size: 400% 400%;
         animation: gradient 10s ease infinite;
     }
+
+    .submit-button:active {
+    transform: scale(0.95);
+}
 
     @keyframes gradient {
         0% {
@@ -336,27 +345,107 @@
         }
     }
 
-    /* .instructions {
-        background-color: rgba(255, 255, 255, 0.3);
-        border-radius: 10px;
-        padding: 1rem;
-        margin: 1rem;
-        text-align: left;
+    .analytics-dashboard {
+        padding: 2rem;
+        background-color: var(--card-background);
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+        margin-top: 2rem;
     }
 
-    .instructions h4 {
+    .chart-container {
+        position: relative;
+        height: 400px;
+        width: 100%;
+    }
+
+    .analytics-dashboard .analytics-input-container {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        margin-top: 2rem;
+    }
+
+    .analytics-dashboard .analytics-input-box {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 45%;
+    }
+
+    .analytics-dashboard .analytics-input-box h3 {
+        margin-bottom: 0.5rem;
         color: #a71d31;
-        margin-bottom: 0.5rem;
+        font-size: 1.2rem;
+        font-weight: bold;
+        text-align: center;
     }
 
-    .instructions ol {
-        padding-left: 1.5rem;
+    .analytics-dashboard .analytics-input-wrapper {
+        display: flex;
+        align-items: center;
+        width: 100%;
     }
 
-    .instructions li {
-        margin-bottom: 0.5rem;
-    } */
+    .analytics-dashboard .analytics-input-wrapper input {
+        flex: 1;
+        margin-right: 10px;
+    }
 
+    .analytics-dashboard .analytics-input {
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        outline: 0;
+        background-color: #f7f7f7;
+        padding: 10px 15px;
+        display: block;
+        text-align: center;
+        font-size: 16px;
+        font-weight: 300;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        width: 100%;
+        transition-duration: 0.25s;
+        margin: 0;
+    }
+
+    .analytics-dashboard .analytics-input:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(183, 28, 28, 0.2);
+    }
+
+    .analytics-dashboard .analytics-button {
+        background-color: #AA0114;
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background-color 0.3s ease;
+    }
+
+    .analytics-dashboard .analytics-button:hover {
+        background-color: #e63a53;
+    }
+
+    .analytics-dashboard .analytics-button:active {
+        transform: scale(0.95);
+    }
+
+    .data-display {
+        background-color: var(--card-background);
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+        padding: 20px;
+        width: 100%;
+        max-width: 800px;
+        height: 400px;
+        overflow-y: auto;
+        margin: 0 auto;
+    }
 </style>
 </head>
 <body>
@@ -383,11 +472,6 @@
             
             <div class="right-column">
                 <div class="form-container">                            
-                    <!-- <div class="instructions">
-                        <h4>Setup Steps:</h4>
-                            <p>Go live. Then enter your YouTube Live URL and Lightning address below.</p>
-                            <p>Generate and share the SuperSat link with your viewers. I recommend pinning it in your live chat</p>
-                    </div> -->
                     <h1>Create your superchat link</h1>
                     <p>Generate a unique url and pin it in your live chat</p>
                     <input type="text" id="video-url" placeholder="Enter your YouTube Live URL" />
@@ -398,6 +482,32 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <div class="analytics-dashboard">
+        <h2>Creator Dashboard</h2>
+        <div class="analytics-input-container">
+            <div class="analytics-input-box">
+                <h3>Live chat data</h3>
+                <div class="analytics-input-wrapper">
+                    <input type="text" id="live-url" class="analytics-input" placeholder="Insert URL">
+                    <button class="analytics-button" onclick="submitLiveUrl()">Submit</button>
+                </div>
+            </div>
+            <div class="analytics-input-box">
+                <h3>Historical chat data</h3>
+                <div class="analytics-input-wrapper">
+                    <input type="text" id="historical-address" class="analytics-input" placeholder="Insert Address">
+                    <button class="analytics-button" onclick="submitHistoricalAddress()">Submit</button>
+                </div>
+            </div>
+        </div>
+        <div class="data-display" id="data-display">
+            <!-- This will be populated with live or historical data -->
+        </div>
+        <div class="chart-container">
+            <canvas id="superchatChart"></canvas>
         </div>
     </div>
 
@@ -462,6 +572,26 @@
                 console.error('Error parsing URL:', error);
             }
             return null;
+        }
+
+        function submitLiveUrl() {
+            const liveUrl = document.getElementById('live-url').value;
+            if (liveUrl) {
+                alert('Live URL submitted: ' + liveUrl);
+                // Add your logic to handle the live URL submission
+            } else {
+                alert('Please enter a valid URL.');
+            }
+        }
+
+        function submitHistoricalAddress() {
+            const historicalAddress = document.getElementById('historical-address').value;
+            if (historicalAddress) {
+                alert('Historical address submitted: ' + historicalAddress);
+                // Add your logic to handle the historical address submission
+            } else {
+                alert('Please enter a valid address.');
+            }
         }
     </script>
 </body>

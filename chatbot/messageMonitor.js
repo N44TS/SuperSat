@@ -2,6 +2,10 @@ const { youtube, oauth2Client, getLiveChatId, deleteMessage } = require('./index
 const { isValidMessage, isSuperchatFormat } = require('./messageValidator');
 const fs = require('fs');
 const path = require('path');
+const EventEmitter = require('events');
+
+// Create an instance of EventEmitter
+const eventEmitter = new EventEmitter();
 
 // Store active monitoring intervals
 const monitoringIntervals = new Map();
@@ -99,6 +103,9 @@ async function processMessage(message, liveChatId, videoId) {
             validSuperchats[videoId].push(messageId);
             // Save the updated valid superchats to file
             fs.writeFileSync(validSuperchatsFile, JSON.stringify(validSuperchats, null, 2));
+
+            // Emit event to EventEmitter
+            eventEmitter.emit('newSuperchat', { videoId, messageText });
         } else {
             // Invalid superchat
             console.log('Fake superchat detected:', messageText);
@@ -133,4 +140,4 @@ function stopMonitoring(videoId) {
     }
 }
 
-module.exports = { monitorLiveChat, stopMonitoring };
+module.exports = { monitorLiveChat, stopMonitoring, eventEmitter };

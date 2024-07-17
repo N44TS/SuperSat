@@ -8,15 +8,16 @@ const fs = require('fs');
 const { AccountTokenAuthProvider, LightsparkClient, InvoiceType, BitcoinNetwork } = require("@lightsparkdev/lightspark-sdk");
 const { google } = require('googleapis');
 const cors = require('cors');
-const { monitorLiveChat, processMessage } = require('./chatbot/messageMonitor');
+const { monitorLiveChat, eventEmitter } = require('./chatbot/messageMonitor');
+// const { monitorLiveChat, processMessage } = require('./chatbot/messageMonitor');
 const { addValidMessage, isValidMessage, isSuperchatFormat } = require('./chatbot/messageValidator');
 const { createInvoice, checkInvoiceStatus, app: webappApp } = require('./webapp/index');
 
 dotenv.config();
 const app = express();
-const port = process.env.PORT || 3001; // Changed to 3001
+const port = process.env.PORT || 3001; //why isnt 3000 working????
 
-app.use(express.json()); // Added this line to parse JSON in request body
+app.use(express.json()); //  parse JSON in request body
 
 const lightsparkClient = new LightsparkClient(
     new AccountTokenAuthProvider(
@@ -235,6 +236,74 @@ app.get('/s/:shortCode', (req, res) => {
         res.redirect(`/superchat?vid=${urlData.videoId}&lnaddr=${urlData.lightningAddress}`);
     } else {
         res.status(404).send('Short URL not found');
+    }
+});
+
+// New endpoint to stream superchat events
+app.get('/superchat-events', (req, res) => {
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+
+    const onNewSuperchat = (data) => {
+        res.write(`data: ${JSON.stringify(data)}\n\n`);
+    };
+
+    eventEmitter.on('newSuperchat', onNewSuperchat);
+
+    req.on('close', () => {
+        eventEmitter.removeListener('newSuperchat', onNewSuperchat);
+    });
+});
+
+// New endpoint to start monitoring live chat
+app.post('/start-monitoring', (req, res) => {
+    const { videoId } = req.body;
+    if (videoId) {
+        monitorLiveChat(videoId)
+            .then(() => res.json({ success: true }))
+            .catch(error => res.json({ error: error.message }));
+    } else {
+        res.json({ error: 'Invalid video ID' });
+    }
+});
+
+app.post('/fetch-messages', async (req, res) => {
+    try {
+        const { lightningAddress } = req.body;
+        const account = await lightsparkClient.getCurrentAccount();
+        if (!account) {
+            throw new Error("Unable to fetch the account.");
+        }
+
+        const transactionsConnection = await account.getTransactions(
+            lightsparkClient,
+            100, // Number of transactions to fetch
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            BitcoinNetwork.REGTEST,
+        );
+
+        const sentMessages = transactionsConnection.entities.filter(transaction => transaction.typename === "OutgoingPayment");
+
+        // See what the lightspark api returns with this, could be useful
+        // console.log("Transaction Data:", JSON.stringify(sentMessages, null, 2));
+
+        const transactions = sentMessages.map(message => ({
+            id: message.id,
+            amountUSD: message.amount.preferredCurrencyValueApprox, // USD 
+            amountSatoshis: message.amount.originalValue / 1000, // Convert millisatoshis to satoshis
+            currency: message.amount.preferredCurrencyUnit,
+            timestamp: message.createdAt,
+            messageText: message.paymentRequestData?.memo || 'No message', // paymentRequestData is where the message is
+        }));
+
+        res.json({ transactions });
+    } catch (error) {
+        console.error('Error fetching messages:', error);
+        res.status(500).json({ error: error.message });
     }
 });
 

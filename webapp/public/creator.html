@@ -446,6 +446,22 @@
         overflow-y: auto;
         margin: 0 auto;
     }
+
+    .spinner {
+        border: 16px solid #f3f3f3;
+        border-top: 16px solid #AA0114;
+        border-radius: 50%;
+        width: 100px;
+        height: 100px;
+        animation: spin 2s linear infinite;
+        margin: 0 auto;
+        display: none; /* Initially hidden */
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
 </style>
 </head>
 <body>
@@ -460,7 +476,7 @@
                     <div class="features">
                         <div class="feature">
                             <h4>Instant Payments</h4>
-                            <p>Receive payments and superchats in real-time during your live streams using the Lightning Network.</p>
+                            <p>Receive payments and superchats in real-time directly in stream using the Lightning Network.</p>
                         </div>
                         <div class="feature">
                             <h4>Easy Setup</h4>
@@ -503,8 +519,9 @@
                 </div>
             </div>
         </div>
+    <div class="spinner" id="loading-spinner"></div>
         <div class="data-display" id="data-display">
-            <!-- This will be populated with live or historical data -->
+            <!-- depeneding on what the creator has chosen the data will go here -->
         </div>
         <div class="chart-container">
             <canvas id="superchatChart"></canvas>
@@ -576,9 +593,27 @@
 
         function submitLiveUrl() {
             const liveUrl = document.getElementById('live-url').value;
-            if (liveUrl) {
-                alert('Live URL submitted: ' + liveUrl);
-                // Add your logic to handle the live URL submission
+            const videoId = extractVideoId(liveUrl);
+            if (videoId) {
+                fetch('/start-monitoring', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ videoId }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert(data.error);
+                    } else {
+                        alert('Live URL submitted: ' + liveUrl);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error submitting live URL: ' + error.message);
+                });
             } else {
                 alert('Please enter a valid URL.');
             }
@@ -587,12 +622,55 @@
         function submitHistoricalAddress() {
             const historicalAddress = document.getElementById('historical-address').value;
             if (historicalAddress) {
-                alert('Historical address submitted: ' + historicalAddress);
-                // Add your logic to handle the historical address submission
+                const spinner = document.getElementById('loading-spinner');
+                spinner.style.display = 'block'; // Show spinner
+
+                fetch('/fetch-messages', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ lightningAddress: historicalAddress }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    spinner.style.display = 'none'; // Hide spinner
+                    if (data.error) {
+                        alert(data.error);
+                    } else {
+                        const dataDisplay = document.getElementById('data-display');
+        dataDisplay.innerHTML = ''; // Clear previous data
+        data.transactions.forEach(transaction => {
+            const newMessage = document.createElement('div');
+            newMessage.innerHTML = `
+                <p><strong>Time:</strong> ${new Date(transaction.timestamp).toLocaleString()}</p>
+                <p><strong>Message:</strong> ${transaction.messageText}</p>
+                <p><strong>Amount:</strong> $${transaction.amountUSD.toFixed(2)} / ${transaction.amountSatoshis} $ATS</p>
+                <hr>
+            `;
+            dataDisplay.appendChild(newMessage);
+        });
+    }
+})
+                .catch(error => {
+                    spinner.style.display = 'none'; // Hide spinner
+                    console.error('Error:', error);
+                    alert('Error fetching messages: ' + error.message);
+                });
             } else {
                 alert('Please enter a valid address.');
             }
         }
+
+        // EventSource client setup
+        const eventSource = new EventSource('/superchat-events');
+        eventSource.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            const dataDisplay = document.getElementById('data-display');
+            const newMessage = document.createElement('div');
+            newMessage.textContent = `Video ID: ${data.videoId}, Message: ${data.messageText}`;
+            dataDisplay.appendChild(newMessage);
+        };
     </script>
 </body>
 </html>

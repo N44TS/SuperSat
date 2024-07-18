@@ -3,10 +3,12 @@
 
 SuperSat integrates Lightning Network payments with YouTube live streams, allowing viewers to send sats  ( Bitcoin micropayments) directly to creators during live streams and see their superchats appear in real time on the live chat.
 
-TLDR: a Youtube superchat alternative. where a user can pay via lightenting network directly to the content creator via a popup from a url in the chat. 
+TLDR: a Youtube superchat alternative, where a user can pay via lightning network directly to the content creator via a popup from a url in the chat. 
 
-Simple Setup: The creator generates a unique URL .
+Simple Setup: The creator generates a unique URL.
+
 Easy Interaction: Users click the URL to open a popup for sending superchats.
+
 Real-Time Display: The bot posts messages to the live chat, visible to everyone.
 
 ## Features
@@ -19,7 +21,7 @@ Real-Time Display: The bot posts messages to the live chat, visible to everyone.
 - Creator dashboard to view superchats and payments coming in in real-time or historical data from previous lives (via lightspark api). 
 
 
-**for the best experience please use youtube in firefox as sometimes the popup doesnt open in other browsers (brave)**
+**for the best experience please use youtube in firefox as sometimes the popup doesnt open in other browsers (like brave)**
 
 
 livedemo: [Supersat](https://supersats.onrender.com) its hosted on Render free tier so if it doesnt start right away its probably asleep so please refresh. 

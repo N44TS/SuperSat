@@ -10,10 +10,10 @@ SuperSat integrates Lightning Network payments with YouTube live streams, allowi
 - Display superchats in YouTube live chat in real time
 - Validates authentic SuperSat messages and remove fake one
 - Flexible Payment Amounts: Viewers can choose how much to donate
-- Creator dashboard to view superchats and payments coming in in real-time or historical data from previous lives. 
+- Creator dashboard to view superchats and payments coming in in real-time or historical data from previous lives (via lightspark api). 
 
 
-**for the best experience please use youtube in firefox
+**for the best experience please use youtube in firefox as sometimes the popup doesnt open in other browsers (brave)**
 
 
 livedemo: [Supersat](https://supersats.onrender.com) its hosted on Render free tier so if it doesnt start right away its probably asleep so please refresh. 

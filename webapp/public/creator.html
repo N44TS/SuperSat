@@ -621,6 +621,7 @@
                         alert(data.error);
                     } else {
                         alert('Live URL submitted: ' + liveUrl);
+                        showSuperchatsContainer();
                     }
                 })
                 .catch(error => {
@@ -630,6 +631,14 @@
             } else {
                 alert('Please enter a valid URL.');
             }
+        }
+
+        function showSuperchatsContainer() {
+            const container = document.getElementById('data-display');
+            container.style.border = '2px solid black';
+            container.style.borderRadius = '5px';
+            container.style.padding = '10px';
+            container.style.minHeight = '100px'; // Ensures the border is visible even when empty
         }
 
         function submitHistoricalAddress() {

@@ -64,7 +64,6 @@ app.get('/preview', (req, res) => {
     res.sendFile(path.join(__dirname, 'webapp', 'public', 'superchat_preview.html'));
 });
 
-// Add this function after the existing imports and configurations
 async function createInvoiceForLightningAddress(lightningAddress, amountSats, memo) {
   try {
     const [username, domain] = lightningAddress.split('@');
@@ -81,7 +80,7 @@ async function createInvoiceForLightningAddress(lightningAddress, amountSats, me
       metadata,
       undefined, // expirySecs
       lightningAddress,
-      memo // Ensure this is correctly passed
+      memo
     );
 
     if (!invoice) {
@@ -96,7 +95,6 @@ async function createInvoiceForLightningAddress(lightningAddress, amountSats, me
   }
 }
 
-// Modify the existing /send-message endpoint
 app.post('/send-message', async (req, res) => {
     const { message, amount, videoId, lightningAddress } = req.body;
     console.log('Received message:', message);
@@ -109,7 +107,7 @@ app.post('/send-message', async (req, res) => {
         const liveChatId = await getLiveChatId(videoId);
         console.log('Live chat ID obtained:', liveChatId);
 
-        // Generate invoice using the createInvoiceForLightningAddress function
+        // Generate invoice using the lightning address LNURL sdk endpoint from lightspark 
         const invoice = await createInvoiceForLightningAddress(lightningAddress, amount, message);
         console.log('Invoice created:', invoice);
 
@@ -159,7 +157,7 @@ app.post('/simulate-payment', async (req, res) => {
         });
         console.log("Node signing key loaded.");
 
-        // Convert amount to millisatoshis (multiply by 1000) and ensure it's a number
+        // Convert amount to millisatoshis (multiply by 1000) cos lightspark api expects this
         const amountMsats = Number(amount) * 1000;
 
         const payment = await lightsparkClient.payInvoice(nodeId, invoice, amountMsats, 60);
@@ -248,7 +246,7 @@ app.post('/generate-short-url', async (req, res) => {
 
         const shortCode = generateShortCode();
         
-        // Generate a sample invoice for 1000 sats (you can adjust this amount)
+        // FOR TESTING CAN BE DELETED WHEN SORTED
         const sampleInvoice = await createInvoiceForLightningAddress(lightningAddress, 1000, 'Sample Superchat');
         console.log('Sample invoice generated:', sampleInvoice);
 
@@ -278,7 +276,7 @@ app.get('/s/:shortCode', (req, res) => {
     }
 });
 
-// New endpoint to stream superchat events
+// endpoint to stream superchat events
 app.get('/superchat-events', (req, res) => {
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
@@ -295,14 +293,22 @@ app.get('/superchat-events', (req, res) => {
     });
 });
 
-// New endpoint to start monitoring live chat
+// endpoint to start monitoring live chat
 app.post('/start-monitoring', (req, res) => {
     const { videoId } = req.body;
+    console.log('Received request to start monitoring:', videoId);
     if (videoId) {
         monitorLiveChat(videoId)
-            .then(() => res.json({ success: true }))
-            .catch(error => res.json({ error: error.message }));
+            .then(() => {
+                console.log('Monitoring started successfully for:', videoId);
+                res.json({ success: true });
+            })
+            .catch(error => {
+                console.error('Error starting monitoring:', error);
+                res.json({ error: error.message });
+            });
     } else {
+        console.error('Invalid video ID received');
         res.json({ error: 'Invalid video ID' });
     }
 });

@@ -1,4 +1,4 @@
-// sandbox-lightning-address.js
+// sandbox
 require('dotenv').config();
 const { AccountTokenAuthProvider, LightsparkClient } = require('@lightsparkdev/lightspark-sdk');
 
@@ -49,8 +49,7 @@ async function createInvoiceForLightningAddress(lightningAddress, amountSats, me
   }
 }
 
-// Test the function
-const testLightningAddress = 'user@getalby.com'; // Replace with a real Lightning Address for testing
+const testLightningAddress = 'user@getalby.com'; 
 const testAmount = 1000; // 1000 sats
 const testMemo = 'Test superchat payment';
 

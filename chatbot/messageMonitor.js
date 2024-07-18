@@ -21,7 +21,7 @@ if (fs.existsSync(validSuperchatsFile)) {
 }
 
 async function monitorLiveChat(videoId) {
-    // Check if we're already monitoring this video
+    // Check if already monitoring this video
     if (monitoringIntervals.has(videoId)) {
         console.log(`Already monitoring video ${videoId}`);
         return;
@@ -105,6 +105,7 @@ async function processMessage(message, liveChatId, videoId) {
             fs.writeFileSync(validSuperchatsFile, JSON.stringify(validSuperchats, null, 2));
 
             // Emit event to EventEmitter
+            console.log('Emitting new superchat event:', { videoId, messageText });
             eventEmitter.emit('newSuperchat', { videoId, messageText });
         } else {
             // Invalid superchat

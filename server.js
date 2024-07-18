@@ -64,6 +64,39 @@ app.get('/preview', (req, res) => {
     res.sendFile(path.join(__dirname, 'webapp', 'public', 'superchat_preview.html'));
 });
 
+// Add this function after the existing imports and configurations
+async function createInvoiceForLightningAddress(lightningAddress, amountSats, memo) {
+  try {
+    const [username, domain] = lightningAddress.split('@');
+    const amountMsats = amountSats * 1000; // Convert sats to msats
+    const metadata = JSON.stringify([
+      ["text/plain", memo],
+      ["text/identifier", lightningAddress],
+    ]);
+
+    console.log(`Creating invoice for ${lightningAddress} with amount ${amountMsats} msats and memo: ${memo}`);
+    const invoice = await lightsparkClient.createLnurlInvoice(
+      nodeId,
+      amountMsats,
+      metadata,
+      undefined, // expirySecs
+      lightningAddress,
+      memo // Ensure this is correctly passed
+    );
+
+    if (!invoice) {
+      throw new Error("Invoice creation failed.");
+    }
+
+    console.log('Invoice created successfully');
+    return invoice.data.encodedPaymentRequest;
+  } catch (error) {
+    console.error('Error creating invoice:', error);
+    throw error;
+  }
+}
+
+// Modify the existing /send-message endpoint
 app.post('/send-message', async (req, res) => {
     const { message, amount, videoId, lightningAddress } = req.body;
     console.log('Received message:', message);
@@ -76,8 +109,9 @@ app.post('/send-message', async (req, res) => {
         const liveChatId = await getLiveChatId(videoId);
         console.log('Live chat ID obtained:', liveChatId);
 
-        const invoice = await createInvoice(amount, `${message}${lightningAddress ? ` | LN:${lightningAddress}` : ''}`);
-        console.log('Real invoice:', invoice);
+        // Generate invoice using the createInvoiceForLightningAddress function
+        const invoice = await createInvoiceForLightningAddress(lightningAddress, amount, message);
+        console.log('Invoice created:', invoice);
 
         const fullMessage = `⚡⚡ 𝗦𝗨𝗣𝗘𝗥𝗖𝗛𝗔𝗧 [${amount} 𝗦𝗔𝗧𝗦]: ${message.toUpperCase()}`;
         addValidMessage(fullMessage);
@@ -213,7 +247,12 @@ app.post('/generate-short-url', async (req, res) => {
         console.log('Live chat ID obtained:', liveChatId);
 
         const shortCode = generateShortCode();
-        shortUrls.set(shortCode, { videoId, lightningAddress });
+        
+        // Generate a sample invoice for 1000 sats (you can adjust this amount)
+        const sampleInvoice = await createInvoiceForLightningAddress(lightningAddress, 1000, 'Sample Superchat');
+        console.log('Sample invoice generated:', sampleInvoice);
+
+        shortUrls.set(shortCode, { videoId, lightningAddress, sampleInvoice });
         console.log('Generated short code:', shortCode);
 
         // Start monitoring the live chat

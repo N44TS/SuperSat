@@ -213,16 +213,24 @@
     }
         
     .generated-url p {
-            margin: 0;
-            padding: 0;
-            color: silver;
-        }
+        margin: 0;
+        padding: 0;
+        color: silver;
+    }
 
     .generated-url a {
-            text-decoration: underline;
-            color: black;
-        }
+        text-decoration: underline;
+        color: black;
+    }
         
+    .generated-url.link-generated {
+        color: black;
+    }
+
+    .generated-url.link-generated p {
+        color: black;
+    }
+
     .submit-button {
         -webkit-appearance: none;
         -moz-appearance: none;
@@ -552,11 +560,13 @@
                         }
                     } else {
                         const superchatUrl = `${window.location.origin}/s/${data.shortCode}`;
-                        document.getElementById('result').innerHTML = `
+                        const resultElement = document.getElementById('result');
+                        resultElement.innerHTML = `
                             <strong>Your Superchat URL:</strong><br>
                             Pin this in your YouTube Live chat:<br>
                             <a href="${superchatUrl}" target="_blank">${superchatUrl}</a>
                         `;
+                        resultElement.classList.add('link-generated');
                     }
                 })
                 .catch(error => {

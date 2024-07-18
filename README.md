@@ -20,11 +20,9 @@ Real-Time Display: The bot posts messages to the live chat, visible to everyone.
 - Flexible Payment Amounts: Viewers can choose how much to donate
 - Creator dashboard to view superchats and payments coming in in real-time or historical data from previous lives (via lightspark api). 
 
-
-**for the best experience please use youtube in firefox as sometimes the popup doesnt open in other browsers (like brave)**
-
-
 livedemo: [Supersat](https://supersats.onrender.com) its hosted on Render free tier so if it doesnt start right away its probably asleep so please refresh. 
+
+***For the best experience please use youtube in firefox as sometimes the popup doesnt open in other browsers (like brave). Currently implimented on Lightspark Regtest** *
 
 ## What it does / how it works
 
